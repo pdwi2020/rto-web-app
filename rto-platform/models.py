@@ -1,6 +1,7 @@
-from sqlalchemy import create_engine, Column, Integer, String, Date, ForeignKey, Boolean
+from sqlalchemy import create_engine, Column, Integer, String, Date, ForeignKey, Boolean, Float, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
+from datetime import datetime
 
 Base = declarative_base()
 
@@ -82,3 +83,14 @@ class Complaint(Base):
     status = Column(String)  # Pending, Resolved, Closed
     submitted_date = Column(Date)
     resolved_date = Column(Date)
+
+class Payment(Base):
+    __tablename__ = 'payments'
+    id = Column(Integer, primary_key=True)
+    application_id = Column(Integer, ForeignKey('applications.id'))
+    amount = Column(Float)
+    payment_method = Column(String)  # UPI, Card, NetBanking
+    transaction_id = Column(String, unique=True)
+    status = Column(String)  # Pending, Success, Failed
+    payment_date = Column(DateTime, default=datetime.utcnow)
+    fee_breakdown = Column(String)  # JSON string

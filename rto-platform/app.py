@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
-from models import Citizen, Broker, Application, Rating, Complaint, engine
+from models import Citizen, Broker, Application, Rating, Complaint, Payment, engine
 from pydantic import BaseModel
 from datetime import datetime
 import random
@@ -567,4 +567,162 @@ def get_support_info():
         "email": "support@rto.gov.in",
         "working_hours": "Monday - Saturday, 9:00 AM - 6:00 PM",
         "helpdesk": "For urgent assistance, call our 24/7 helpline"
+    }
+
+# ==================== Approval Workflow Endpoints ====================
+
+class ApproveRequest(BaseModel):
+    approved_by: int  # broker_id
+
+class RejectRequest(BaseModel):
+    rejected_by: int  # broker_id
+    reason: str
+
+@app.post("/applications/{application_id}/approve")
+def approve_application(application_id: int, request: ApproveRequest, db: Session = Depends(get_db)):
+    """Approve an application"""
+    app = db.query(Application).filter(Application.id == application_id).first()
+
+    if not app:
+        return {"error": "Application not found"}
+
+    app.status = "Approved"
+    db.commit()
+
+    return {
+        "success": True,
+        "application_id": application_id,
+        "status": "Approved",
+        "message": "Application approved successfully"
+    }
+
+@app.post("/applications/{application_id}/reject")
+def reject_application(application_id: int, request: RejectRequest, db: Session = Depends(get_db)):
+    """Reject an application with reason"""
+    app = db.query(Application).filter(Application.id == application_id).first()
+
+    if not app:
+        return {"error": "Application not found"}
+
+    app.status = "Rejected"
+    db.commit()
+
+    return {
+        "success": True,
+        "application_id": application_id,
+        "status": "Rejected",
+        "reason": request.reason,
+        "message": "Application rejected"
+    }
+
+# ==================== Payment Endpoints ====================
+
+class PaymentRequest(BaseModel):
+    application_id: int
+    amount: float
+    payment_method: str
+    fee_breakdown: str  # JSON string
+
+@app.post("/payments/")
+def create_payment(payment: PaymentRequest, db: Session = Depends(get_db)):
+    """Process payment for an application"""
+    import uuid
+
+    # Generate transaction ID
+    transaction_id = f"TXN{uuid.uuid4().hex[:12].upper()}"
+
+    # Create payment record
+    db_payment = Payment(
+        application_id=payment.application_id,
+        amount=payment.amount,
+        payment_method=payment.payment_method,
+        transaction_id=transaction_id,
+        status="Success",  # Mock success
+        payment_date=datetime.utcnow(),
+        fee_breakdown=payment.fee_breakdown
+    )
+
+    db.add(db_payment)
+
+    # Update application status to "Payment Completed"
+    app = db.query(Application).filter(Application.id == payment.application_id).first()
+    if app:
+        app.status = "Payment Completed"
+
+    db.commit()
+    db.refresh(db_payment)
+
+    return {
+        "success": True,
+        "payment_id": db_payment.id,
+        "transaction_id": transaction_id,
+        "amount": payment.amount,
+        "status": "Success",
+        "message": "Payment processed successfully"
+    }
+
+@app.get("/payments/{application_id}")
+def get_payment_by_application(application_id: int, db: Session = Depends(get_db)):
+    """Get payment details for an application"""
+    payment = db.query(Payment).filter(Payment.application_id == application_id).first()
+
+    if not payment:
+        return {"error": "Payment not found"}
+
+    return {
+        "id": payment.id,
+        "application_id": payment.application_id,
+        "amount": payment.amount,
+        "payment_method": payment.payment_method,
+        "transaction_id": payment.transaction_id,
+        "status": payment.status,
+        "payment_date": payment.payment_date.isoformat() if payment.payment_date else None,
+        "fee_breakdown": payment.fee_breakdown
+    }
+
+@app.get("/payments/")
+def list_payments(db: Session = Depends(get_db)):
+    """List all payments"""
+    payments = db.query(Payment).all()
+
+    return [{
+        "id": p.id,
+        "application_id": p.application_id,
+        "amount": p.amount,
+        "payment_method": p.payment_method,
+        "transaction_id": p.transaction_id,
+        "status": p.status,
+        "payment_date": p.payment_date.isoformat() if p.payment_date else None
+    } for p in payments]
+
+# ==================== Authentication Endpoint ====================
+
+class LoginRequest(BaseModel):
+    license_number: str
+
+@app.post("/brokers/login")
+def broker_login(request: LoginRequest, db: Session = Depends(get_db)):
+    """Simple broker login using license number"""
+    broker = db.query(Broker).filter(Broker.license_number == request.license_number).first()
+
+    if not broker:
+        return {"success": False, "message": "Invalid license number"}
+
+    # Calculate broker stats
+    applications = db.query(Application).filter(Application.broker_id == broker.id).all()
+    total_apps = len(applications)
+    approved_apps = len([a for a in applications if a.status == "Approved"])
+
+    return {
+        "success": True,
+        "broker": {
+            "id": broker.id,
+            "name": broker.name,
+            "license_number": broker.license_number,
+            "phone": broker.phone,
+            "email": broker.email,
+            "specialization": broker.specialization,
+            "total_applications": total_apps,
+            "approved_applications": approved_apps
+        }
     }

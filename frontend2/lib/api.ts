@@ -254,3 +254,55 @@ export async function detectForgery(imageBase64: string): Promise<{ is_forged: b
   if (!response.ok) throw new Error('Failed to detect forgery')
   return response.json()
 }
+
+// ==================== Approval & Payment Functions ====================
+
+export async function approveApplication(applicationId: number, brokerId: number): Promise<{ success: boolean; message: string }> {
+  const response = await fetch(`${API_BASE_URL}/applications/${applicationId}/approve`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ approved_by: brokerId }),
+  })
+  if (!response.ok) throw new Error('Failed to approve application')
+  return response.json()
+}
+
+export async function rejectApplication(applicationId: number, brokerId: number, reason: string): Promise<{ success: boolean; message: string }> {
+  const response = await fetch(`${API_BASE_URL}/applications/${applicationId}/reject`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ rejected_by: brokerId, reason }),
+  })
+  if (!response.ok) throw new Error('Failed to reject application')
+  return response.json()
+}
+
+export interface PaymentData {
+  application_id: number
+  amount: number
+  payment_method: string
+  fee_breakdown: string
+}
+
+export async function processPayment(paymentData: PaymentData): Promise<{
+  success: boolean
+  payment_id: number
+  transaction_id: string
+  amount: number
+  status: string
+  message: string
+}> {
+  const response = await fetch(`${API_BASE_URL}/payments/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(paymentData),
+  })
+  if (!response.ok) throw new Error('Failed to process payment')
+  return response.json()
+}
+
+export async function getPaymentByApplication(applicationId: number) {
+  const response = await fetch(`${API_BASE_URL}/payments/${applicationId}`)
+  if (!response.ok) throw new Error('Failed to fetch payment')
+  return response.json()
+}

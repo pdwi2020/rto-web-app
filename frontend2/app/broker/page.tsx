@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Navbar } from "@/components/site/navbar"
 import {
   Breadcrumb,
@@ -36,12 +37,13 @@ import {
   type Complaint,
   type SupportInfo
 } from "@/lib/api"
-import { Star, Phone, Mail, Award, TrendingUp, Plus, Search, Upload, AlertTriangle, DollarSign, Clock, MessageSquare, PhoneCall } from "lucide-react"
+import { Star, Phone, Mail, Award, TrendingUp, Plus, Search, Upload, AlertTriangle, DollarSign, Clock, MessageSquare, PhoneCall, LogOut } from "lucide-react"
 
 export default function BrokerDashboard() {
-  // Authentication state (mock for now - use actual broker ID from session)
-  const BROKER_ID = 1
+  const router = useRouter()
 
+  // Authentication state
+  const [BROKER_ID, setBROKER_ID] = useState<number | null>(null)
   const [broker, setBroker] = useState<Broker | null>(null)
   const [applications, setApplications] = useState<Application[]>([])
   const [complaints, setComplaints] = useState<Complaint[]>([])
@@ -77,20 +79,30 @@ export default function BrokerDashboard() {
   const [analyzing, setAnalyzing] = useState(false)
 
   useEffect(() => {
-    loadDashboardData()
+    // Check authentication
+    const brokerData = localStorage.getItem("broker")
+    const brokerId = localStorage.getItem("brokerId")
+
+    if (!brokerData || !brokerId) {
+      router.push("/broker/login")
+      return
+    }
+
+    setBROKER_ID(parseInt(brokerId))
+    loadDashboardData(parseInt(brokerId))
   }, [])
 
-  const loadDashboardData = async () => {
+  const loadDashboardData = async (brokerId: number) => {
     try {
       setLoading(true)
       const [brokerData, appsData, complaintsData, supportData] = await Promise.all([
-        getBrokerById(BROKER_ID),
+        getBrokerById(brokerId),
         getApplications(),
-        getComplaints(BROKER_ID),
+        getComplaints(brokerId),
         getSupportInfo()
       ])
       setBroker(brokerData)
-      setApplications(appsData.filter((app: Application) => app.broker_id === BROKER_ID))
+      setApplications(appsData.filter((app: Application) => app.broker_id === brokerId))
       setComplaints(complaintsData)
       setSupportInfo(supportData)
     } catch (error) {
@@ -100,8 +112,14 @@ export default function BrokerDashboard() {
     }
   }
 
+  const handleLogout = () => {
+    localStorage.removeItem("broker")
+    localStorage.removeItem("brokerId")
+    router.push("/broker/login")
+  }
+
   const handleStartJob = async () => {
-    if (!vehicleNumber.trim()) return
+    if (!vehicleNumber.trim() || !BROKER_ID) return
 
     setJobStarting(true)
     try {
@@ -161,7 +179,7 @@ export default function BrokerDashboard() {
   }
 
   const handleSubmitComplaint = async () => {
-    if (!selectedAppId || !complaintType || !complaintDesc) return
+    if (!selectedAppId || !complaintType || !complaintDesc || !BROKER_ID) return
 
     try {
       await submitComplaint({
@@ -174,7 +192,7 @@ export default function BrokerDashboard() {
       setComplaintType("")
       setComplaintDesc("")
       setSelectedAppId(null)
-      loadDashboardData()
+      loadDashboardData(BROKER_ID)
     } catch (error) {
       console.error("Failed to submit complaint:", error)
     }
@@ -231,6 +249,12 @@ export default function BrokerDashboard() {
 
         {/* Broker Profile Section */}
         <div className="mb-8 rounded-lg border border-neutral-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-6">
+          <div className="mb-4 flex items-center justify-end">
+            <Button variant="outline" size="sm" onClick={handleLogout} className="gap-2">
+              <LogOut className="h-4 w-4" />
+              Logout
+            </Button>
+          </div>
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <h1 className="text-3xl font-bold text-neutral-900">{broker?.name}</h1>
