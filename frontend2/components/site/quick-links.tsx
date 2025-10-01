@@ -3,13 +3,13 @@ import { CreditCard, Car, FileText, CalendarClock, BadgeCheck, Search, Gavel, Sh
 
 const links = [
   { href: "/apply", label: "Apply for DL", icon: BadgeCheck },
-  { href: "#", label: "Vehicle Registration", icon: Car },
-  { href: "#", label: "Tax Payment", icon: CreditCard },
-  { href: "#", label: "Book Appointment", icon: CalendarClock },
-  { href: "#", label: "Check RC/DL Status", icon: Search },
-  { href: "#", label: "e-Challan", icon: Gavel },
-  { href: "#", label: "PUC Certificate", icon: ShieldCheck },
-  { href: "#", label: "Download Forms", icon: FileText },
+  { href: "/apply", label: "Vehicle Registration", icon: Car },
+  { href: "/apply", label: "Tax Payment", icon: CreditCard },
+  { href: "/apply", label: "Book Appointment", icon: CalendarClock },
+  { href: "/apply", label: "Check RC/DL Status", icon: Search },
+  { href: "/apply", label: "e-Challan", icon: Gavel },
+  { href: "/apply", label: "PUC Certificate", icon: ShieldCheck },
+  { href: "/apply", label: "Download Forms", icon: FileText },
 ]
 
 export function QuickLinks() {

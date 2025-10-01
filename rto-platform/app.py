@@ -151,8 +151,24 @@ def create_application(app: ApplicationCreate, db: Session = Depends(get_db)):
     return db_app
 
 @app.get("/applications/")
-def list_applications(db: Session = Depends(get_db)):
-    applications = db.query(Application).all()
+def list_applications(citizen_id: int = None, broker_id: int = None, is_fraud: bool = None, page: int = 1, limit: int = 50, db: Session = Depends(get_db)):
+    query = db.query(Application)
+
+    # Apply filters
+    if citizen_id:
+        query = query.filter(Application.citizen_id == citizen_id)
+    if broker_id:
+        query = query.filter(Application.broker_id == broker_id)
+    if is_fraud is not None:
+        query = query.filter(Application.is_fraud == is_fraud)
+
+    # Get total count
+    total = query.count()
+
+    # Apply pagination
+    offset = (page - 1) * limit
+    applications = query.offset(offset).limit(limit).all()
+
     result = []
     for app in applications:
         result.append({
@@ -165,7 +181,7 @@ def list_applications(db: Session = Depends(get_db)):
             "documents": app.documents,
             "is_fraud": app.is_fraud
         })
-    return result
+    return {"total": total, "page": page, "limit": limit, "applications": result}
 
 @app.get("/analytics/")
 def get_analytics(db: Session = Depends(get_db)):
@@ -202,3 +218,183 @@ def detect_forgery(request: ForgeryRequest):
         return {"status": "error", "error": f"Invalid image payload: {exc}"}
     result = analyze_document(image_bytes)
     return result
+
+# New endpoints for complete functionality
+
+@app.get("/applications/{application_id}")
+def get_application(application_id: int, db: Session = Depends(get_db)):
+    app = db.query(Application).filter(Application.id == application_id).first()
+    if not app:
+        return {"error": "Application not found"}
+
+    # Get citizen and broker details
+    citizen = db.query(Citizen).filter(Citizen.id == app.citizen_id).first()
+    broker = db.query(Broker).filter(Broker.id == app.broker_id).first()
+
+    # Get rating if exists
+    rating = db.query(Rating).filter(Rating.application_id == app.id).first()
+
+    return {
+        "id": app.id,
+        "citizen": {
+            "id": citizen.id,
+            "name": citizen.name,
+            "email": citizen.email,
+            "phone": citizen.phone,
+            "address": citizen.address
+        } if citizen else None,
+        "broker": {
+            "id": broker.id,
+            "name": broker.name,
+            "email": broker.email,
+            "phone": broker.phone,
+            "specialization": broker.specialization
+        } if broker else None,
+        "application_type": app.application_type,
+        "status": app.status,
+        "submission_date": app.submission_date.isoformat() if app.submission_date else None,
+        "documents": app.documents,
+        "is_fraud": app.is_fraud,
+        "vehicle_details": {
+            "owner_name": app.owner_name,
+            "owner_so": app.owner_so,
+            "owner_address": app.owner_address,
+            "ownership": app.ownership,
+            "chassis_number": app.chassis_number,
+            "engine_number": app.engine_number,
+            "cubic_capacity": app.cubic_capacity,
+            "maker_name": app.maker_name,
+            "model_name": app.model_name,
+            "date_of_registration": app.date_of_registration.isoformat() if app.date_of_registration else None,
+            "registration_valid_upto": app.registration_valid_upto.isoformat() if app.registration_valid_upto else None,
+            "tax_valid_upto": app.tax_valid_upto.isoformat() if app.tax_valid_upto else None,
+            "fitness_status": app.fitness_status,
+            "vehicle_class": app.vehicle_class,
+            "vehicle_description": app.vehicle_description,
+            "fuel_type": app.fuel_type,
+            "emission_norm": app.emission_norm,
+            "seat_capacity": app.seat_capacity,
+            "vehicle_color": app.vehicle_color,
+            "insurance_details": app.insurance_details,
+            "insurance_valid_upto": app.insurance_valid_upto.isoformat() if app.insurance_valid_upto else None,
+            "pucc_no": app.pucc_no,
+            "pucc_valid_upto": app.pucc_valid_upto.isoformat() if app.pucc_valid_upto else None,
+            "registering_authority": app.registering_authority,
+            "registration_number": app.registration_number
+        },
+        "rating": {
+            "punctuality": rating.punctuality,
+            "quality": rating.quality,
+            "compliance": rating.compliance,
+            "communication": rating.communication,
+            "overall": rating.overall
+        } if rating else None
+    }
+
+@app.get("/brokers/{broker_id}/details")
+def get_broker_details(broker_id: int, db: Session = Depends(get_db)):
+    broker = db.query(Broker).filter(Broker.id == broker_id).first()
+    if not broker:
+        return {"error": "Broker not found"}
+
+    # Get ratings
+    ratings = db.query(Rating).join(Application).filter(Application.broker_id == broker_id).all()
+
+    # Calculate average ratings
+    if ratings:
+        avg_punctuality = sum([r.punctuality for r in ratings]) / len(ratings)
+        avg_quality = sum([r.quality for r in ratings]) / len(ratings)
+        avg_compliance = sum([r.compliance for r in ratings]) / len(ratings)
+        avg_communication = sum([r.communication for r in ratings]) / len(ratings)
+        avg_overall = sum([r.overall for r in ratings]) / len(ratings)
+    else:
+        avg_punctuality = avg_quality = avg_compliance = avg_communication = avg_overall = 0
+
+    # Get recent applications
+    recent_apps = db.query(Application).filter(Application.broker_id == broker_id).order_by(Application.submission_date.desc()).limit(10).all()
+
+    # Calculate success rate
+    total_apps = db.query(Application).filter(Application.broker_id == broker_id).count()
+    approved_apps = db.query(Application).filter(Application.broker_id == broker_id, Application.status == "Approved").count()
+    success_rate = (approved_apps / total_apps * 100) if total_apps > 0 else 0
+
+    return {
+        "id": broker.id,
+        "name": broker.name,
+        "license_number": broker.license_number,
+        "phone": broker.phone,
+        "email": broker.email,
+        "specialization": broker.specialization,
+        "ratings": {
+            "punctuality": round(avg_punctuality, 2),
+            "quality": round(avg_quality, 2),
+            "compliance": round(avg_compliance, 2),
+            "communication": round(avg_communication, 2),
+            "overall": round(avg_overall, 2),
+            "total_ratings": len(ratings)
+        },
+        "statistics": {
+            "total_applications": total_apps,
+            "approved_applications": approved_apps,
+            "success_rate": round(success_rate, 2)
+        },
+        "recent_applications": [{
+            "id": app.id,
+            "application_type": app.application_type,
+            "status": app.status,
+            "submission_date": app.submission_date.isoformat() if app.submission_date else None
+        } for app in recent_apps]
+    }
+
+@app.get("/brokers/{broker_id}/assignments")
+def get_broker_assignments(broker_id: int, db: Session = Depends(get_db)):
+    applications = db.query(Application).filter(Application.broker_id == broker_id, Application.status.in_(["Pending", "In Progress"])).all()
+
+    result = []
+    for app in applications:
+        citizen = db.query(Citizen).filter(Citizen.id == app.citizen_id).first()
+        result.append({
+            "id": app.id,
+            "application_type": app.application_type,
+            "status": app.status,
+            "submission_date": app.submission_date.isoformat() if app.submission_date else None,
+            "citizen_name": citizen.name if citizen else "Unknown",
+            "is_fraud": app.is_fraud
+        })
+
+    return result
+
+@app.get("/brokers/{broker_id}/statistics")
+def get_broker_statistics(broker_id: int, db: Session = Depends(get_db)):
+    from sqlalchemy import func
+    from datetime import timedelta
+
+    # Daily stats for last 7 days
+    today = datetime.now().date()
+    daily_stats = []
+
+    for i in range(6, -1, -1):
+        day = today - timedelta(days=i)
+        day_name = day.strftime("%A")[:3]  # Mon, Tue, etc.
+
+        count = db.query(Application).filter(
+            Application.broker_id == broker_id,
+            Application.submission_date == day
+        ).count()
+
+        daily_stats.append({
+            "day": day_name,
+            "count": count
+        })
+
+    # Overall stats
+    total_assigned = db.query(Application).filter(Application.broker_id == broker_id).count()
+    pending = db.query(Application).filter(Application.broker_id == broker_id, Application.status == "Pending").count()
+    approved = db.query(Application).filter(Application.broker_id == broker_id, Application.status == "Approved").count()
+
+    return {
+        "daily_assignments": daily_stats,
+        "total_assigned": total_assigned,
+        "pending": pending,
+        "approved": approved
+    }
