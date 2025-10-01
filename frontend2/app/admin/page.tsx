@@ -11,7 +11,9 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart"
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from "recharts"
-import { getAnalytics, type Analytics } from "@/lib/api"
+import { getAnalytics, type Analytics, type Application } from "@/lib/api"
+import { Badge } from "@/components/ui/badge"
+import { AlertTriangle } from "lucide-react"
 
 const data = [
   { week: "W1", approvals: 80, avgSLA: 4.7 },
@@ -22,20 +24,28 @@ const data = [
 
 export default function AdminDashboard() {
   const [analytics, setAnalytics] = useState<Analytics | null>(null)
+  const [fraudApplications, setFraudApplications] = useState<Application[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    async function fetchAnalytics() {
+    async function fetchData() {
       try {
-        const data = await getAnalytics()
-        setAnalytics(data)
+        const [analyticsData, appsResponse] = await Promise.all([
+          getAnalytics(),
+          fetch("http://localhost:8000/applications/?is_fraud=true")
+        ])
+        setAnalytics(analyticsData)
+
+        const appsData = await appsResponse.json()
+        const apps = appsData.applications || appsData
+        setFraudApplications(apps.slice(0, 20)) // Show first 20 fraud cases
       } catch (error) {
-        console.error("Failed to fetch analytics:", error)
+        console.error("Failed to fetch data:", error)
       } finally {
         setLoading(false)
       }
     }
-    fetchAnalytics()
+    fetchData()
   }, [])
 
   const approvalRate = analytics
@@ -120,6 +130,45 @@ export default function AdminDashboard() {
               </AreaChart>
             </ResponsiveContainer>
           </ChartContainer>
+        </div>
+
+        <div className="mt-8 rounded-md border border-red-200 bg-red-50 p-4">
+          <div className="mb-4 flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 text-red-600" />
+            <h2 className="text-lg font-medium text-red-900">Fraud Detection Review</h2>
+            <Badge variant="destructive" className="ml-auto">{fraudApplications.length} Cases</Badge>
+          </div>
+          <div className="space-y-3">
+            {fraudApplications.length === 0 ? (
+              <p className="py-4 text-center text-neutral-600">No fraud cases detected</p>
+            ) : (
+              fraudApplications.map((app) => (
+                <a
+                  key={app.id}
+                  href={`/applications/${app.id}`}
+                  className="flex items-center justify-between rounded-md border border-red-200 bg-white p-4 hover:bg-red-50 transition-colors"
+                >
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className="h-4 w-4 text-red-600" />
+                      <p className="font-medium">Application #{app.id}</p>
+                    </div>
+                    <p className="text-sm text-neutral-600">{app.application_type}</p>
+                    <p className="text-xs text-neutral-500">Submitted: {new Date(app.submission_date).toLocaleDateString()}</p>
+                    {app.owner_name && (
+                      <p className="text-xs text-neutral-500">Owner: {app.owner_name}</p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="destructive">Fraud Detected</Badge>
+                    <Badge variant={app.status === "Approved" ? "default" : app.status === "Pending" ? "secondary" : "outline"}>
+                      {app.status}
+                    </Badge>
+                  </div>
+                </a>
+              ))
+            )}
+          </div>
         </div>
       </section>
     </main>

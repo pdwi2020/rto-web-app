@@ -27,8 +27,11 @@ export default function CitizenDashboard() {
   useEffect(() => {
     async function fetchApplications() {
       try {
-        const data = await getApplications()
-        setApplications(data.slice(0, 10)) // Show only first 10 for demo
+        const response = await fetch("http://localhost:8000/applications/")
+        const data = await response.json()
+        // Handle pagination response format
+        const apps = data.applications || data
+        setApplications(apps.slice(0, 10)) // Show only first 10 for demo
       } catch (error) {
         console.error("Failed to fetch applications:", error)
       } finally {
@@ -91,6 +94,47 @@ export default function CitizenDashboard() {
               </li>
             ))}
           </ol>
+        </div>
+
+        <div className="mt-8 rounded-md border border-neutral-200 p-4">
+          <h2 className="text-lg font-medium">My Applications</h2>
+          <div className="mt-4 space-y-3">
+            {loading ? (
+              <p className="py-4 text-center text-neutral-600">Loading applications...</p>
+            ) : applications.length === 0 ? (
+              <p className="py-4 text-center text-neutral-600">No applications found</p>
+            ) : (
+              applications.map((app) => (
+                <a
+                  key={app.id}
+                  href={`/applications/${app.id}`}
+                  className="flex items-center justify-between rounded-md border border-neutral-200 p-4 hover:bg-neutral-50 transition-colors"
+                >
+                  <div>
+                    <p className="font-medium">Application #{app.id}</p>
+                    <p className="text-sm text-neutral-600">{app.application_type}</p>
+                    <p className="text-xs text-neutral-500">Submitted: {new Date(app.submission_date).toLocaleDateString()}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                      app.status === "Approved"
+                        ? "bg-green-100 text-green-800"
+                        : app.status === "Pending"
+                        ? "bg-yellow-100 text-yellow-800"
+                        : "bg-red-100 text-red-800"
+                    }`}>
+                      {app.status}
+                    </span>
+                    {app.is_fraud && (
+                      <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
+                        ⚠ Fraud Alert
+                      </span>
+                    )}
+                  </div>
+                </a>
+              ))
+            )}
+          </div>
         </div>
       </section>
     </main>

@@ -115,3 +115,142 @@ export async function extractTextFromImage(imageBase64: string): Promise<string>
   const data = await response.json()
   return data.extracted_text
 }
+
+// Broker Workflow API Functions
+export interface StartJobRequest {
+  vehicle_number: string
+}
+
+export interface StartJobResponse {
+  success: boolean
+  message: string
+  application_id?: number
+  vehicle_details?: any
+}
+
+export interface VerifyOTPRequest {
+  phone: string
+  otp: string
+}
+
+export interface VerifyOTPResponse {
+  success: boolean
+  message: string
+  session_token?: string
+}
+
+export interface FeeEstimate {
+  breakdown: {
+    base_fee: number
+    service_fee: number
+    broker_commission: number
+    tax_gst: number
+    total: number
+  }
+}
+
+export interface Complaint {
+  id: number
+  broker_id: number
+  application_id: number
+  complaint_type: string
+  description: string
+  status: string
+  submitted_date: string
+  resolved_date?: string
+}
+
+export interface SupportInfo {
+  toll_free: string
+  emergency_contact: string
+  email: string
+  working_hours: string
+  helpdesk: string
+}
+
+export async function startJob(brokerId: number, vehicleNumber: string): Promise<StartJobResponse> {
+  const response = await fetch(`${API_BASE_URL}/brokers/${brokerId}/start-job`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ vehicle_number: vehicleNumber }),
+  })
+  if (!response.ok) throw new Error('Failed to start job')
+  return response.json()
+}
+
+export async function verifyOTP(phone: string, otp: string): Promise<VerifyOTPResponse> {
+  const response = await fetch(`${API_BASE_URL}/brokers/verify-otp`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone, otp }),
+  })
+  if (!response.ok) throw new Error('Failed to verify OTP')
+  return response.json()
+}
+
+export async function calculateFee(applicationId: number, applicationType: string, vehicleClass: string): Promise<FeeEstimate> {
+  const response = await fetch(`${API_BASE_URL}/applications/${applicationId}/calculate-fee`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ application_type: applicationType, vehicle_class: vehicleClass }),
+  })
+  if (!response.ok) throw new Error('Failed to calculate fee')
+  return response.json()
+}
+
+export async function submitComplaint(data: {
+  broker_id: number
+  application_id: number
+  complaint_type: string
+  description: string
+}): Promise<{ success: boolean; complaint_id: number; message: string }> {
+  const response = await fetch(`${API_BASE_URL}/complaints`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  if (!response.ok) throw new Error('Failed to submit complaint')
+  return response.json()
+}
+
+export async function getComplaints(brokerId?: number, status?: string): Promise<Complaint[]> {
+  const params = new URLSearchParams()
+  if (brokerId) params.append('broker_id', brokerId.toString())
+  if (status) params.append('status', status)
+
+  const response = await fetch(`${API_BASE_URL}/complaints?${params.toString()}`)
+  if (!response.ok) throw new Error('Failed to fetch complaints')
+  return response.json()
+}
+
+export async function getSupportInfo(): Promise<SupportInfo> {
+  const response = await fetch(`${API_BASE_URL}/support/info`)
+  if (!response.ok) throw new Error('Failed to fetch support info')
+  return response.json()
+}
+
+export async function updateApplicationStatus(applicationId: number, status: string): Promise<Application> {
+  const response = await fetch(`${API_BASE_URL}/applications/${applicationId}/status`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status }),
+  })
+  if (!response.ok) throw new Error('Failed to update application status')
+  return response.json()
+}
+
+export async function getBrokerById(brokerId: number): Promise<Broker> {
+  const response = await fetch(`${API_BASE_URL}/brokers/${brokerId}`)
+  if (!response.ok) throw new Error('Failed to fetch broker')
+  return response.json()
+}
+
+export async function detectForgery(imageBase64: string): Promise<{ is_forged: boolean; confidence: number; issues: string[] }> {
+  const response = await fetch(`${API_BASE_URL}/detect-forgery/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ image: imageBase64 }),
+  })
+  if (!response.ok) throw new Error('Failed to detect forgery')
+  return response.json()
+}
