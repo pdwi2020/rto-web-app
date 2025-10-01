@@ -37,6 +37,7 @@ import {
   type Complaint,
   type SupportInfo
 } from "@/lib/api"
+import { PaymentModal } from "@/components/broker/PaymentModal"
 import { Star, Phone, Mail, Award, TrendingUp, Plus, Search, Upload, AlertTriangle, DollarSign, Clock, MessageSquare, PhoneCall, LogOut } from "lucide-react"
 
 export default function BrokerDashboard() {
@@ -77,6 +78,10 @@ export default function BrokerDashboard() {
   const [uploadedDoc, setUploadedDoc] = useState<string | null>(null)
   const [forgeryResult, setForgeryResult] = useState<any>(null)
   const [analyzing, setAnalyzing] = useState(false)
+
+  // Payment Modal
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [selectedApplicationForPayment, setSelectedApplicationForPayment] = useState<number | null>(null)
 
   useEffect(() => {
     // Check authentication
@@ -421,6 +426,16 @@ export default function BrokerDashboard() {
                         <span>₹{feeEstimate.breakdown.total}</span>
                       </div>
                     </div>
+                    <Button
+                      onClick={() => {
+                        setSelectedApplicationForPayment(1)
+                        setShowPaymentModal(true)
+                      }}
+                      className="mt-4 w-full gap-2"
+                    >
+                      <DollarSign className="h-4 w-4" />
+                      Proceed to Payment
+                    </Button>
                   </div>
                 )}
               </div>
@@ -722,6 +737,22 @@ export default function BrokerDashboard() {
           </TabsContent>
         </Tabs>
       </section>
+
+      {/* Payment Modal */}
+      {showPaymentModal && feeEstimate && selectedApplicationForPayment && (
+        <PaymentModal
+          open={showPaymentModal}
+          onOpenChange={(open) => {
+            setShowPaymentModal(open)
+            if (!open) {
+              setSelectedApplicationForPayment(null)
+              if (BROKER_ID) loadDashboardData(BROKER_ID)
+            }
+          }}
+          applicationId={selectedApplicationForPayment}
+          feeBreakdown={feeEstimate.breakdown}
+        />
+      )}
     </main>
   )
 }

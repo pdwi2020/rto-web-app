@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { Navbar } from "@/components/site/navbar"
 import { API_BASE_URL } from "@/lib/config"
 import {
@@ -16,18 +16,34 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
-import { type Application, type Broker } from "@/lib/api"
-import { Calendar, User, FileText, AlertTriangle, Car, Shield, Droplet, Gauge, Award } from "lucide-react"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
+import { type Application, type Broker, approveApplication, rejectApplication } from "@/lib/api"
+import { Calendar, User, FileText, AlertTriangle, Car, Shield, Droplet, Gauge, Award, CheckCircle, XCircle } from "lucide-react"
 
 export default function ApplicationDetailPage() {
   const params = useParams()
+  const router = useRouter()
   const applicationId = params.id as string
 
   const [application, setApplication] = useState<Application | null>(null)
   const [broker, setBroker] = useState<Broker | null>(null)
   const [loading, setLoading] = useState(true)
+  const [brokerId, setBrokerId] = useState<number | null>(null)
+
+  // Reject modal state
+  const [showRejectModal, setShowRejectModal] = useState(false)
+  const [rejectReason, setRejectReason] = useState("")
+  const [processing, setProcessing] = useState(false)
 
   useEffect(() => {
+    // Get broker ID from localStorage if logged in
+    const storedBrokerId = localStorage.getItem("brokerId")
+    if (storedBrokerId) {
+      setBrokerId(parseInt(storedBrokerId))
+    }
+
     loadApplicationData()
   }, [applicationId])
 
@@ -48,6 +64,42 @@ export default function ApplicationDetailPage() {
       console.error("Failed to load application:", error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleApprove = async () => {
+    if (!brokerId) return
+
+    setProcessing(true)
+    try {
+      await approveApplication(parseInt(applicationId), brokerId)
+      // Reload to show updated status
+      await loadApplicationData()
+      alert("Application approved successfully!")
+    } catch (error) {
+      console.error("Failed to approve:", error)
+      alert("Failed to approve application")
+    } finally {
+      setProcessing(false)
+    }
+  }
+
+  const handleRejectSubmit = async () => {
+    if (!brokerId || !rejectReason.trim()) return
+
+    setProcessing(true)
+    try {
+      await rejectApplication(parseInt(applicationId), brokerId, rejectReason)
+      setShowRejectModal(false)
+      setRejectReason("")
+      // Reload to show updated status
+      await loadApplicationData()
+      alert("Application rejected")
+    } catch (error) {
+      console.error("Failed to reject:", error)
+      alert("Failed to reject application")
+    } finally {
+      setProcessing(false)
     }
   }
 
@@ -111,6 +163,64 @@ export default function ApplicationDetailPage() {
             )}
           </div>
         </div>
+
+        {/* Approval Actions - Only show for brokers on Pending applications */}
+        {brokerId && application.status === "Pending" && (
+          <div className="mb-6 flex gap-3 rounded-lg border border-neutral-200 bg-neutral-50 p-4">
+            <Button
+              onClick={handleApprove}
+              disabled={processing}
+              className="gap-2"
+            >
+              <CheckCircle className="h-4 w-4" />
+              {processing ? "Processing..." : "Approve Application"}
+            </Button>
+            <Button
+              onClick={() => setShowRejectModal(true)}
+              disabled={processing}
+              variant="destructive"
+              className="gap-2"
+            >
+              <XCircle className="h-4 w-4" />
+              Reject Application
+            </Button>
+          </div>
+        )}
+
+        {/* Reject Modal */}
+        <Dialog open={showRejectModal} onOpenChange={setShowRejectModal}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Reject Application</DialogTitle>
+              <DialogDescription>
+                Please provide a reason for rejecting this application.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              <Label htmlFor="reason">Rejection Reason</Label>
+              <Textarea
+                id="reason"
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                placeholder="Enter reason for rejection..."
+                className="mt-2"
+                rows={4}
+              />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowRejectModal(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleRejectSubmit}
+                disabled={processing || !rejectReason.trim()}
+                variant="destructive"
+              >
+                {processing ? "Rejecting..." : "Confirm Rejection"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <Tabs defaultValue="details" className="w-full">
           <TabsList>
