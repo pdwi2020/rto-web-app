@@ -1,8 +1,9 @@
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
-from models import Citizen, Broker, Application, Rating, engine
+from models import Citizen, Broker, Application, Rating, Complaint, engine
 from pydantic import BaseModel
 from datetime import datetime
+import random
 from ai_services.chatbot import get_chatbot_response
 from ai_services.ocr import extract_text_from_image
 from ai_services.forgery import analyze_document
@@ -72,6 +73,23 @@ class OCRRequest(BaseModel):
 
 class ForgeryRequest(BaseModel):
     image: str
+
+class StartJobRequest(BaseModel):
+    vehicle_number: str
+
+class VerifyOTPRequest(BaseModel):
+    phone: str
+    otp: str
+
+class ComplaintRequest(BaseModel):
+    broker_id: int
+    application_id: int
+    complaint_type: str
+    description: str
+
+class FeeEstimateRequest(BaseModel):
+    application_type: str
+    vehicle_class: str
 
 # Endpoints
 @app.post("/citizens/")
@@ -397,4 +415,156 @@ def get_broker_statistics(broker_id: int, db: Session = Depends(get_db)):
         "total_assigned": total_assigned,
         "pending": pending,
         "approved": approved
+    }
+
+# Broker workflow endpoints
+
+@app.post("/brokers/{broker_id}/start-job")
+def start_job(broker_id: int, request: StartJobRequest, db: Session = Depends(get_db)):
+    """Start a new job by searching for vehicle"""
+    # Search for application by vehicle registration number
+    app = db.query(Application).filter(Application.registration_number == request.vehicle_number).first()
+
+    if app:
+        return {
+            "success": True,
+            "application": {
+                "id": app.id,
+                "vehicle_number": app.registration_number,
+                "owner_name": app.owner_name,
+                "status": app.status
+            }
+        }
+    else:
+        # If not found in applications, search in any vehicle with this number
+        return {
+            "success": False,
+            "message": "Vehicle not found in system. Please create new application."
+        }
+
+@app.post("/brokers/verify-otp")
+def verify_otp(request: VerifyOTPRequest):
+    """Verify OTP (mock implementation)"""
+    # For demo, accept any 6-digit OTP
+    if len(request.otp) == 6 and request.otp.isdigit():
+        return {
+            "success": True,
+            "message": "OTP verified successfully",
+            "session_token": f"mock_token_{random.randint(1000, 9999)}"
+        }
+    else:
+        return {
+            "success": False,
+            "message": "Invalid OTP"
+        }
+
+@app.post("/applications/{application_id}/calculate-fee")
+def calculate_fee(application_id: int, request: FeeEstimateRequest, db: Session = Depends(get_db)):
+    """Calculate fee estimate for application"""
+    # Fee structure
+    base_fees = {
+        "New Registration": 1500,
+        "Renewal": 800,
+        "Transfer": 1000
+    }
+
+    vehicle_class_multiplier = {
+        "Two Wheeler": 1.0,
+        "Four Wheeler": 1.5,
+        "Commercial": 2.0,
+        "Heavy Vehicle": 3.0
+    }
+
+    base_fee = base_fees.get(request.application_type, 1000)
+    multiplier = vehicle_class_multiplier.get(request.vehicle_class, 1.0)
+
+    service_fee = base_fee * multiplier
+    broker_commission = service_fee * 0.15
+    tax = service_fee * 0.18  # GST
+    total = service_fee + broker_commission + tax
+
+    return {
+        "breakdown": {
+            "base_fee": round(base_fee, 2),
+            "service_fee": round(service_fee, 2),
+            "broker_commission": round(broker_commission, 2),
+            "tax_gst": round(tax, 2),
+            "total": round(total, 2)
+        },
+        "application_type": request.application_type,
+        "vehicle_class": request.vehicle_class
+    }
+
+@app.post("/complaints")
+def submit_complaint(complaint: ComplaintRequest, db: Session = Depends(get_db)):
+    """Submit a new complaint"""
+    db_complaint = Complaint(
+        broker_id=complaint.broker_id,
+        application_id=complaint.application_id,
+        complaint_type=complaint.complaint_type,
+        description=complaint.description,
+        status="Pending",
+        submitted_date=datetime.now().date()
+    )
+    db.add(db_complaint)
+    db.commit()
+    db.refresh(db_complaint)
+    return {
+        "success": True,
+        "complaint_id": db_complaint.id,
+        "message": "Complaint submitted successfully. Ticket ID: " + str(db_complaint.id)
+    }
+
+@app.get("/complaints")
+def list_complaints(broker_id: int = None, status: str = None, db: Session = Depends(get_db)):
+    """List complaints with filters"""
+    query = db.query(Complaint)
+
+    if broker_id:
+        query = query.filter(Complaint.broker_id == broker_id)
+    if status:
+        query = query.filter(Complaint.status == status)
+
+    complaints = query.all()
+
+    result = []
+    for c in complaints:
+        result.append({
+            "id": c.id,
+            "broker_id": c.broker_id,
+            "application_id": c.application_id,
+            "complaint_type": c.complaint_type,
+            "description": c.description,
+            "status": c.status,
+            "submitted_date": c.submitted_date.isoformat() if c.submitted_date else None,
+            "resolved_date": c.resolved_date.isoformat() if c.resolved_date else None
+        })
+
+    return result
+
+@app.put("/applications/{application_id}/status")
+def update_application_status(application_id: int, status: str, db: Session = Depends(get_db)):
+    """Update application status"""
+    app = db.query(Application).filter(Application.id == application_id).first()
+    if not app:
+        return {"error": "Application not found"}
+
+    app.status = status
+    db.commit()
+
+    return {
+        "success": True,
+        "application_id": application_id,
+        "new_status": status
+    }
+
+@app.get("/support/info")
+def get_support_info():
+    """Get toll-free and support information"""
+    return {
+        "toll_free": "1800-XXX-XXXX",
+        "emergency_contact": "+91-XXX-XXX-XXXX",
+        "email": "support@rto.gov.in",
+        "working_hours": "Monday - Saturday, 9:00 AM - 6:00 PM",
+        "helpdesk": "For urgent assistance, call our 24/7 helpline"
     }

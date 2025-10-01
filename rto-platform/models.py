@@ -71,3 +71,14 @@ class Rating(Base):
     compliance = Column(Integer)
     communication = Column(Integer)
     overall = Column(Integer)
+
+class Complaint(Base):
+    __tablename__ = 'complaints'
+    id = Column(Integer, primary_key=True)
+    broker_id = Column(Integer, ForeignKey('brokers.id'))
+    application_id = Column(Integer, ForeignKey('applications.id'))
+    complaint_type = Column(String)
+    description = Column(String)
+    status = Column(String)  # Pending, Resolved, Closed
+    submitted_date = Column(Date)
+    resolved_date = Column(Date)
