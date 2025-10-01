@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
 import { Navbar } from "@/components/site/navbar"
+import { API_BASE_URL } from "@/lib/config"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -34,12 +35,12 @@ export default function ApplicationDetailPage() {
     try {
       setLoading(true)
       // Fetch application and broker data
-      const appResponse = await fetch(`http://localhost:8000/applications/${applicationId}`)
+      const appResponse = await fetch(`${API_BASE_URL}/applications/${applicationId}`)
       const appData = await appResponse.json()
       setApplication(appData)
 
       if (appData.broker_id) {
-        const brokerResponse = await fetch(`http://localhost:8000/brokers/${appData.broker_id}`)
+        const brokerResponse = await fetch(`${API_BASE_URL}/brokers/${appData.broker_id}`)
         const brokerData = await brokerResponse.json()
         setBroker(brokerData)
       }

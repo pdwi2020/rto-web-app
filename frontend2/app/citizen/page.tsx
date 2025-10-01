@@ -11,6 +11,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { getApplications, type Application } from "@/lib/api"
+import { API_BASE_URL } from "@/lib/config"
 
 const steps = [
   { label: "Submitted", done: true },
@@ -27,7 +28,7 @@ export default function CitizenDashboard() {
   useEffect(() => {
     async function fetchApplications() {
       try {
-        const response = await fetch("http://localhost:8000/applications/")
+        const response = await fetch(`${API_BASE_URL}/applications/`)
         const data = await response.json()
         // Handle pagination response format
         const apps = data.applications || data

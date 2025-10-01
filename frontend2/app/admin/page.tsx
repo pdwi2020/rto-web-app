@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/chart"
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from "recharts"
 import { getAnalytics, type Analytics, type Application } from "@/lib/api"
+import { API_BASE_URL } from "@/lib/config"
 import { Badge } from "@/components/ui/badge"
 import { AlertTriangle } from "lucide-react"
 
@@ -32,7 +33,7 @@ export default function AdminDashboard() {
       try {
         const [analyticsData, appsResponse] = await Promise.all([
           getAnalytics(),
-          fetch("http://localhost:8000/applications/?is_fraud=true")
+          fetch(`${API_BASE_URL}/applications/?is_fraud=true`)
         ])
         setAnalytics(analyticsData)
 
