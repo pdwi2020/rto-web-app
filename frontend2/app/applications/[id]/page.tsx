@@ -70,8 +70,8 @@ export default function ApplicationDetailPage() {
       const appData = await appResponse.json()
       setApplication(appData)
 
-      if (appData.broker_id) {
-        const brokerResponse = await fetch(`${API_BASE_URL}/brokers/${appData.broker_id}`)
+      if (appData.broker?.id) {
+        const brokerResponse = await fetch(`${API_BASE_URL}/brokers/${appData.broker.id}`)
         const brokerData = await brokerResponse.json()
         setBroker(brokerData)
       }
