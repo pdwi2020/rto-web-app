@@ -1,8 +1,18 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { ThemeToggle } from "@/components/site/theme-toggle"
+import { Button } from "@/components/ui/button"
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
+import { Menu } from "lucide-react"
 
 const links = [
   { href: "/", label: "Home" },
@@ -16,6 +26,8 @@ const links = [
 
 export function Navbar() {
   const pathname = usePathname()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
   return (
     <header className="sticky top-0 z-20 border-b border-border bg-background/80 backdrop-blur">
       <nav aria-label="Primary" className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
@@ -26,6 +38,7 @@ export function Navbar() {
           </Link>
         </div>
 
+        {/* Desktop Navigation */}
         <ul className="hidden items-center gap-1 sm:flex">
           {links.map((l) => {
             const active = pathname === l.href
@@ -48,6 +61,40 @@ export function Navbar() {
         </ul>
 
         <div className="flex items-center gap-2">
+          {/* Mobile Menu */}
+          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="sm:hidden">
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Toggle menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left">
+              <SheetHeader>
+                <SheetTitle>Navigation</SheetTitle>
+              </SheetHeader>
+              <nav className="mt-6 flex flex-col gap-2">
+                {links.map((l) => {
+                  const active = pathname === l.href
+                  return (
+                    <Link
+                      key={l.href}
+                      href={l.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={
+                        active
+                          ? "rounded-md bg-primary px-4 py-3 text-sm font-medium text-primary-foreground"
+                          : "rounded-md px-4 py-3 text-sm font-medium text-foreground hover:bg-accent hover:text-accent-foreground"
+                      }
+                    >
+                      {l.label}
+                    </Link>
+                  )
+                })}
+              </nav>
+            </SheetContent>
+          </Sheet>
+
           <ThemeToggle />
         </div>
       </nav>
