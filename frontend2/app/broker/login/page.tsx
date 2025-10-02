@@ -70,14 +70,14 @@ export default function BrokerLoginPage() {
                 <Input
                   id="license"
                   type="text"
-                  placeholder="e.g., LIC001"
+                  placeholder="e.g., 3972562113"
                   value={licenseNumber}
-                  onChange={(e) => setLicenseNumber(e.target.value.toUpperCase())}
+                  onChange={(e) => setLicenseNumber(e.target.value)}
                   required
                   autoFocus
                 />
                 <p className="text-xs text-neutral-500">
-                  Demo: Use any license from LIC001 to LIC100
+                  Demo: Use any broker's 10-digit license number
                 </p>
               </div>
 
@@ -94,9 +94,9 @@ export default function BrokerLoginPage() {
             </form>
 
             <div className="mt-6 space-y-2 text-center text-sm text-neutral-600">
-              <p>For demo purposes, use license numbers:</p>
+              <p>For demo purposes, click any license number:</p>
               <div className="flex flex-wrap justify-center gap-2">
-                {["LIC001", "LIC002", "LIC003"].map((lic) => (
+                {["3972562113", "7495224699", "3105460228"].map((lic) => (
                   <button
                     key={lic}
                     type="button"
