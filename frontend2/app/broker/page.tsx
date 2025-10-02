@@ -260,28 +260,28 @@ export default function BrokerDashboard() {
               Logout
             </Button>
           </div>
-          <div className="flex items-start justify-between">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="flex-1">
-              <h1 className="text-3xl font-bold text-neutral-900">{broker?.name}</h1>
-              <div className="mt-2 flex items-center gap-4 text-sm text-neutral-600">
+              <h1 className="text-2xl font-bold text-neutral-900 sm:text-3xl">{broker?.name}</h1>
+              <div className="mt-2 flex flex-col gap-2 text-sm text-neutral-600 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
                 <span className="flex items-center gap-1">
-                  <Award className="h-4 w-4" />
-                  License: {broker?.license_number}
+                  <Award className="h-4 w-4 flex-shrink-0" />
+                  <span className="break-words">License: {broker?.license_number}</span>
                 </span>
                 <span className="flex items-center gap-1">
-                  <Phone className="h-4 w-4" />
-                  {broker?.phone}
+                  <Phone className="h-4 w-4 flex-shrink-0" />
+                  <span className="break-words">{broker?.phone}</span>
                 </span>
-                <span className="flex items-center gap-1">
-                  <Mail className="h-4 w-4" />
-                  {broker?.email}
+                <span className="flex items-center gap-1 overflow-hidden">
+                  <Mail className="h-4 w-4 flex-shrink-0" />
+                  <span className="truncate">{broker?.email}</span>
                 </span>
               </div>
               <Badge className="mt-2" variant="secondary">{broker?.specialization}</Badge>
             </div>
 
             {/* Ratings Display */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4 sm:w-auto">
               <Card className="border-none shadow-sm">
                 <CardContent className="p-3 text-center">
                   <div className="flex items-center justify-center gap-1">
@@ -304,7 +304,7 @@ export default function BrokerDashboard() {
           </div>
 
           {/* Performance Metrics */}
-          <div className="mt-6 grid grid-cols-4 gap-4">
+          <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
             {[
               { label: "Punctuality", value: broker?.avg_punctuality },
               { label: "Quality", value: broker?.avg_quality },
@@ -328,7 +328,7 @@ export default function BrokerDashboard() {
         </div>
 
         {/* Action Buttons */}
-        <div className="mb-6 flex gap-3">
+        <div className="mb-6 flex flex-wrap gap-3">
           <Dialog open={showStartJob} onOpenChange={setShowStartJob}>
             <DialogTrigger asChild>
               <Button className="gap-2">

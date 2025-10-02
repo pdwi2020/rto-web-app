@@ -80,7 +80,7 @@ export default function CitizenDashboard() {
 
         <div className="mt-8 rounded-md border border-neutral-200 p-4">
           <h2 className="text-lg font-medium">Progress Over Time</h2>
-          <ol className="mt-4 grid gap-3 sm:grid-cols-5">
+          <ol className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
             {steps.map((s, i) => (
               <li key={i} className="flex flex-col items-start">
                 <span
@@ -91,7 +91,7 @@ export default function CitizenDashboard() {
                 >
                   {i + 1}
                 </span>
-                <span className="mt-2 text-sm">{s.label}</span>
+                <span className="mt-2 text-xs sm:text-sm">{s.label}</span>
               </li>
             ))}
           </ol>
@@ -109,15 +109,15 @@ export default function CitizenDashboard() {
                 <a
                   key={app.id}
                   href={`/applications/${app.id}`}
-                  className="flex items-center justify-between rounded-md border border-neutral-200 p-4 hover:bg-neutral-50 transition-colors"
+                  className="flex flex-col gap-3 rounded-md border border-neutral-200 p-4 hover:bg-neutral-50 transition-colors sm:flex-row sm:items-center sm:justify-between"
                 >
-                  <div>
+                  <div className="flex-1">
                     <p className="font-medium">Application #{app.id}</p>
                     <p className="text-sm text-neutral-600">{app.application_type}</p>
                     <p className="text-xs text-neutral-500">Submitted: {new Date(app.submission_date).toLocaleDateString()}</p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap ${
                       app.status === "Approved"
                         ? "bg-green-100 text-green-800"
                         : app.status === "Pending"
@@ -127,7 +127,7 @@ export default function CitizenDashboard() {
                       {app.status}
                     </span>
                     {app.is_fraud && (
-                      <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
+                      <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800 whitespace-nowrap">
                         ⚠ Fraud Alert
                       </span>
                     )}

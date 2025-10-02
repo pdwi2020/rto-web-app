@@ -161,12 +161,12 @@ export default function ApplicationDetailPage() {
         </Breadcrumb>
 
         {/* Header */}
-        <div className="mb-6 flex items-start justify-between">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Application #{application.id}</h1>
+            <h1 className="text-2xl font-bold sm:text-3xl">Application #{application.id}</h1>
             <p className="mt-1 text-neutral-600">{application.application_type}</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             <Badge variant={application.status === "Approved" ? "default" : application.status === "Pending" ? "secondary" : "destructive"}>
               {application.status}
             </Badge>
@@ -181,11 +181,11 @@ export default function ApplicationDetailPage() {
 
         {/* Approval Actions - Only show for brokers on Pending applications */}
         {brokerId && application.status === "Pending" && (
-          <div className="mb-6 flex gap-3 rounded-lg border border-neutral-200 bg-neutral-50 p-4">
+          <div className="mb-6 flex flex-col gap-3 rounded-lg border border-neutral-200 bg-neutral-50 p-4 sm:flex-row">
             <Button
               onClick={handleApprove}
               disabled={processing}
-              className="gap-2"
+              className="w-full gap-2 sm:w-auto"
             >
               <CheckCircle className="h-4 w-4" />
               {processing ? "Processing..." : "Approve Application"}
@@ -194,7 +194,7 @@ export default function ApplicationDetailPage() {
               onClick={() => setShowRejectModal(true)}
               disabled={processing}
               variant="destructive"
-              className="gap-2"
+              className="w-full gap-2 sm:w-auto"
             >
               <XCircle className="h-4 w-4" />
               Reject Application
@@ -238,11 +238,11 @@ export default function ApplicationDetailPage() {
         </Dialog>
 
         <Tabs defaultValue="details" className="w-full">
-          <TabsList>
-            <TabsTrigger value="details">Application Details</TabsTrigger>
-            <TabsTrigger value="vehicle">Vehicle Information</TabsTrigger>
-            <TabsTrigger value="documents">Documents</TabsTrigger>
-            <TabsTrigger value="broker">Broker Info</TabsTrigger>
+          <TabsList className="w-full justify-start overflow-x-auto">
+            <TabsTrigger value="details" className="whitespace-nowrap">Application Details</TabsTrigger>
+            <TabsTrigger value="vehicle" className="whitespace-nowrap">Vehicle Information</TabsTrigger>
+            <TabsTrigger value="documents" className="whitespace-nowrap">Documents</TabsTrigger>
+            <TabsTrigger value="broker" className="whitespace-nowrap">Broker Info</TabsTrigger>
           </TabsList>
 
           {/* Application Details Tab */}
@@ -272,18 +272,18 @@ export default function ApplicationDetailPage() {
                     </div>
                     <p className="mt-1 text-xs text-neutral-500">Tamil Nadu, India</p>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <div>
                       <p className="text-sm font-medium text-neutral-700">Phone</p>
                       <div className="flex items-center gap-1 text-sm">
                         <Phone className="h-3 w-3 text-neutral-400" />
-                        <p>{application.citizen?.phone || "N/A"}</p>
+                        <p className="break-words">{application.citizen?.phone || "N/A"}</p>
                       </div>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-neutral-700">Email</p>
-                      <div className="flex items-center gap-1 text-sm">
-                        <Mail className="h-3 w-3 text-neutral-400" />
+                      <div className="flex items-center gap-1 text-sm overflow-hidden">
+                        <Mail className="h-3 w-3 flex-shrink-0 text-neutral-400" />
                         <p className="truncate">{application.citizen?.email || "N/A"}</p>
                       </div>
                     </div>
@@ -354,18 +354,18 @@ export default function ApplicationDetailPage() {
                       <p className="text-sm font-medium text-neutral-700">License Number</p>
                       <p className="font-mono text-sm">{broker.license_number}</p>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                       <div>
                         <p className="text-sm font-medium text-neutral-700">Phone</p>
                         <div className="flex items-center gap-1 text-sm">
-                          <Phone className="h-3 w-3 text-neutral-400" />
-                          <p className="truncate">{broker.phone}</p>
+                          <Phone className="h-3 w-3 flex-shrink-0 text-neutral-400" />
+                          <p className="break-words">{broker.phone}</p>
                         </div>
                       </div>
                       <div>
                         <p className="text-sm font-medium text-neutral-700">Email</p>
-                        <div className="flex items-center gap-1 text-sm">
-                          <Mail className="h-3 w-3 text-neutral-400" />
+                        <div className="flex items-center gap-1 text-sm overflow-hidden">
+                          <Mail className="h-3 w-3 flex-shrink-0 text-neutral-400" />
                           <p className="truncate">{broker.email}</p>
                         </div>
                       </div>
@@ -554,11 +554,11 @@ export default function ApplicationDetailPage() {
                         <p className="text-sm font-medium text-neutral-700">Contact</p>
                         <div className="space-y-1">
                           <div className="flex items-center gap-1 text-sm">
-                            <Phone className="h-3 w-3 text-neutral-400" />
-                            <p>{broker.phone}</p>
+                            <Phone className="h-3 w-3 flex-shrink-0 text-neutral-400" />
+                            <p className="break-words">{broker.phone}</p>
                           </div>
-                          <div className="flex items-center gap-1 text-sm">
-                            <Mail className="h-3 w-3 text-neutral-400" />
+                          <div className="flex items-center gap-1 text-sm overflow-hidden">
+                            <Mail className="h-3 w-3 flex-shrink-0 text-neutral-400" />
                             <p className="truncate">{broker.email}</p>
                           </div>
                         </div>
