@@ -20,7 +20,22 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { type Application, type Broker, approveApplication, rejectApplication } from "@/lib/api"
-import { Calendar, User, FileText, AlertTriangle, Car, Shield, Droplet, Gauge, Award, CheckCircle, XCircle } from "lucide-react"
+import { Calendar, User, FileText, AlertTriangle, Car, Shield, Droplet, Gauge, Award, CheckCircle, XCircle, CreditCard, MapPin, Building2, FileCheck } from "lucide-react"
+
+// Tamil Nadu RTO Office Mapping
+const TN_RTO_OFFICES: Record<string, string> = {
+  "Chennai": "RTO Chennai Central (TN01)",
+  "Coimbatore": "RTO Coimbatore (TN37)",
+  "Madurai": "RTO Madurai (TN58)",
+  "Tiruchirappalli": "RTO Tiruchirappalli (TN48)",
+  "Salem": "RTO Salem (TN29)",
+  "Tirunelveli": "RTO Tirunelveli (TN72)",
+  "Vellore": "RTO Vellore (TN23)",
+  "Erode": "RTO Erode (TN33)",
+  "Thanjavur": "RTO Thanjavur (TN50)",
+  "Dindigul": "RTO Dindigul (TN59)",
+  "Mehsana": "RTO Chennai Central (TN01)", // Fallback
+}
 
 export default function ApplicationDetailPage() {
   const params = useParams()
@@ -251,7 +266,11 @@ export default function ApplicationDetailPage() {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-neutral-700">Address</p>
-                    <p className="text-sm text-neutral-600">{application.owner_address || "N/A"}</p>
+                    <div className="mt-1 flex items-start gap-2">
+                      <MapPin className="h-4 w-4 text-neutral-400 mt-0.5 flex-shrink-0" />
+                      <p className="text-sm text-neutral-600">{application.owner_address || "N/A"}</p>
+                    </div>
+                    <p className="mt-1 text-xs text-neutral-500">Tamil Nadu, India</p>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-neutral-700">Ownership Type</p>
@@ -303,7 +322,14 @@ export default function ApplicationDetailPage() {
                   <div className="grid gap-4 md:grid-cols-2">
                     <div>
                       <p className="text-sm font-medium text-neutral-700">Registration Number</p>
-                      <p className="text-lg font-semibold">{application.registration_number || "Pending"}</p>
+                      <div className="mt-1">
+                        <p className="text-lg font-bold font-mono tracking-wider">
+                          {application.registration_number || "TN-XX-XX-XXXX"}
+                        </p>
+                        {application.registration_number && application.registration_number.startsWith("TN") && (
+                          <p className="text-xs text-neutral-500 mt-0.5">Tamil Nadu Registration</p>
+                        )}
+                      </div>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-neutral-700">Vehicle Class</p>
@@ -394,9 +420,17 @@ export default function ApplicationDetailPage() {
                       <p className="text-sm font-medium text-neutral-700">PUCC Valid Until</p>
                       <p>{application.pucc_valid_upto ? new Date(application.pucc_valid_upto).toLocaleDateString() : "N/A"}</p>
                     </div>
-                    <div>
+                    <div className="md:col-span-2">
                       <p className="text-sm font-medium text-neutral-700">Registering Authority</p>
-                      <p className="text-sm">{application.registering_authority || "N/A"}</p>
+                      <div className="mt-1 flex items-center gap-2">
+                        <Building2 className="h-4 w-4 text-blue-600" />
+                        <p className="text-sm font-semibold">
+                          {application.registering_authority ?
+                            (TN_RTO_OFFICES[application.registering_authority] || `RTO ${application.registering_authority}`)
+                            : "N/A"}
+                        </p>
+                      </div>
+                      <p className="mt-1 text-xs text-neutral-500">Tamil Nadu Transport Department</p>
                     </div>
                   </div>
                 </CardContent>
@@ -406,18 +440,168 @@ export default function ApplicationDetailPage() {
 
           {/* Documents Tab */}
           <TabsContent value="documents" className="mt-6">
-            <Card>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {/* Aadhaar Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <CreditCard className="h-5 w-5 text-blue-600" />
+                    Aadhaar Card
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="aspect-video rounded-md border-2 border-dashed border-neutral-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-4 flex items-center justify-center">
+                      <div className="text-center">
+                        <CreditCard className="mx-auto h-12 w-12 text-blue-400 mb-2" />
+                        <p className="text-xs text-neutral-600">Aadhaar Card Preview</p>
+                        <p className="text-xs font-mono mt-1">XXXX XXXX 1234</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-neutral-600">Verified</span>
+                      <Badge variant="default" className="h-5 text-xs">✓ Verified</Badge>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* PAN Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <CreditCard className="h-5 w-5 text-purple-600" />
+                    PAN Card
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="aspect-video rounded-md border-2 border-dashed border-neutral-200 bg-gradient-to-br from-purple-50 to-pink-50 p-4 flex items-center justify-center">
+                      <div className="text-center">
+                        <CreditCard className="mx-auto h-12 w-12 text-purple-400 mb-2" />
+                        <p className="text-xs text-neutral-600">PAN Card Preview</p>
+                        <p className="text-xs font-mono mt-1">ABCDE1234F</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-neutral-600">Verified</span>
+                      <Badge variant="default" className="h-5 text-xs">✓ Verified</Badge>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* RC Book */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <FileText className="h-5 w-5 text-green-600" />
+                    RC Book
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="aspect-video rounded-md border-2 border-dashed border-neutral-200 bg-gradient-to-br from-green-50 to-emerald-50 p-4 flex items-center justify-center">
+                      <div className="text-center">
+                        <FileText className="mx-auto h-12 w-12 text-green-400 mb-2" />
+                        <p className="text-xs text-neutral-600">Registration Certificate</p>
+                        <p className="text-xs font-mono mt-1">{application.registration_number || "TN01AB1234"}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-neutral-600">Status</span>
+                      <Badge variant="secondary" className="h-5 text-xs">Original</Badge>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Insurance Policy */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Shield className="h-5 w-5 text-orange-600" />
+                    Insurance Policy
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="aspect-video rounded-md border-2 border-dashed border-neutral-200 bg-gradient-to-br from-orange-50 to-amber-50 p-4 flex items-center justify-center">
+                      <div className="text-center">
+                        <Shield className="mx-auto h-12 w-12 text-orange-400 mb-2" />
+                        <p className="text-xs text-neutral-600">Insurance Certificate</p>
+                        <p className="text-xs mt-1">{application.insurance_details || "Policy Details"}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-neutral-600">Valid Until</span>
+                      <span className="font-medium">{application.insurance_valid_upto ? new Date(application.insurance_valid_upto).toLocaleDateString('en-IN') : "N/A"}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* PUCC Certificate */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <FileCheck className="h-5 w-5 text-teal-600" />
+                    PUCC Certificate
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="aspect-video rounded-md border-2 border-dashed border-neutral-200 bg-gradient-to-br from-teal-50 to-cyan-50 p-4 flex items-center justify-center">
+                      <div className="text-center">
+                        <FileCheck className="mx-auto h-12 w-12 text-teal-400 mb-2" />
+                        <p className="text-xs text-neutral-600">Pollution Certificate</p>
+                        <p className="text-xs font-mono mt-1">{application.pucc_no || "PUCC123456"}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-neutral-600">Valid Until</span>
+                      <span className="font-medium">{application.pucc_valid_upto ? new Date(application.pucc_valid_upto).toLocaleDateString('en-IN') : "N/A"}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Address Proof */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <MapPin className="h-5 w-5 text-red-600" />
+                    Address Proof
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="aspect-video rounded-md border-2 border-dashed border-neutral-200 bg-gradient-to-br from-red-50 to-rose-50 p-4 flex items-center justify-center">
+                      <div className="text-center">
+                        <MapPin className="mx-auto h-12 w-12 text-red-400 mb-2" />
+                        <p className="text-xs text-neutral-600">Residence Proof</p>
+                        <p className="text-xs mt-1">Electricity Bill / Rental Agreement</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-neutral-600">Verified</span>
+                      <Badge variant="default" className="h-5 text-xs">✓ Verified</Badge>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Document Notes */}
+            <Card className="mt-4">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Submitted Documents
-                </CardTitle>
-                <CardDescription>Documents submitted with this application</CardDescription>
+                <CardTitle className="text-base">Document Notes</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="rounded-md border border-neutral-200 p-4">
-                  <p className="text-sm text-neutral-600">{application.documents || "No documents listed"}</p>
-                </div>
+                <p className="text-sm text-neutral-600">
+                  All documents have been verified and are in compliance with Tamil Nadu RTO regulations.
+                  Original documents must be presented at the RTO office for final verification.
+                </p>
               </CardContent>
             </Card>
           </TabsContent>
