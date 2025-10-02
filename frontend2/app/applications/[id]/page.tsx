@@ -20,7 +20,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { type Application, type Broker, approveApplication, rejectApplication } from "@/lib/api"
-import { Calendar, User, FileText, AlertTriangle, Car, Shield, Droplet, Gauge, Award, CheckCircle, XCircle, CreditCard, MapPin, Building2, FileCheck } from "lucide-react"
+import { Calendar, User, FileText, AlertTriangle, Car, Shield, Droplet, Gauge, Award, CheckCircle, XCircle, CreditCard, MapPin, Building2, FileCheck, Phone, Mail, Star } from "lucide-react"
 
 // Tamil Nadu RTO Office Mapping
 const TN_RTO_OFFICES: Record<string, string> = {
@@ -247,7 +247,7 @@ export default function ApplicationDetailPage() {
 
           {/* Application Details Tab */}
           <TabsContent value="details" className="mt-6">
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-6 md:grid-cols-3">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -272,6 +272,22 @@ export default function ApplicationDetailPage() {
                     </div>
                     <p className="mt-1 text-xs text-neutral-500">Tamil Nadu, India</p>
                   </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <p className="text-sm font-medium text-neutral-700">Phone</p>
+                      <div className="flex items-center gap-1 text-sm">
+                        <Phone className="h-3 w-3 text-neutral-400" />
+                        <p>{application.citizen?.phone || "N/A"}</p>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-neutral-700">Email</p>
+                      <div className="flex items-center gap-1 text-sm">
+                        <Mail className="h-3 w-3 text-neutral-400" />
+                        <p className="truncate">{application.citizen?.email || "N/A"}</p>
+                      </div>
+                    </div>
+                  </div>
                   <div>
                     <p className="text-sm font-medium text-neutral-700">Ownership Type</p>
                     <Badge variant="outline">{application.ownership || "N/A"}</Badge>
@@ -283,28 +299,98 @@ export default function ApplicationDetailPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Calendar className="h-5 w-5" />
-                    Timeline
+                    Timeline & Validity
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div>
                     <p className="text-sm font-medium text-neutral-700">Submission Date</p>
-                    <p>{new Date(application.submission_date).toLocaleDateString()}</p>
+                    <p>{new Date(application.submission_date).toLocaleDateString('en-IN')}</p>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-neutral-700">Registration Date</p>
-                    <p>{application.date_of_registration ? new Date(application.date_of_registration).toLocaleDateString() : "N/A"}</p>
+                    <p>{application.date_of_registration ? new Date(application.date_of_registration).toLocaleDateString('en-IN') : "N/A"}</p>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-neutral-700">Registration Valid Until</p>
-                    <p>{application.registration_valid_upto ? new Date(application.registration_valid_upto).toLocaleDateString() : "N/A"}</p>
+                    <p>{application.registration_valid_upto ? new Date(application.registration_valid_upto).toLocaleDateString('en-IN') : "N/A"}</p>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-neutral-700">Tax Valid Until</p>
-                    <p>{application.tax_valid_upto ? new Date(application.tax_valid_upto).toLocaleDateString() : "N/A"}</p>
+                    <p>{application.tax_valid_upto ? new Date(application.tax_valid_upto).toLocaleDateString('en-IN') : "N/A"}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-neutral-700">Insurance Valid Until</p>
+                    <p>{application.insurance_valid_upto ? new Date(application.insurance_valid_upto).toLocaleDateString('en-IN') : "N/A"}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-neutral-700">PUCC Valid Until</p>
+                    <p>{application.pucc_valid_upto ? new Date(application.pucc_valid_upto).toLocaleDateString('en-IN') : "N/A"}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-neutral-700">Fitness Status</p>
+                    <Badge variant={application.fitness_status === "Fit" ? "default" : "secondary"}>
+                      {application.fitness_status || "N/A"}
+                    </Badge>
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Assigned Broker Card */}
+              {broker && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Award className="h-5 w-5" />
+                      Assigned Broker
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div>
+                      <p className="text-sm font-medium text-neutral-700">Name</p>
+                      <p className="text-lg font-semibold">{broker.name}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-neutral-700">License Number</p>
+                      <p className="font-mono text-sm">{broker.license_number}</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <p className="text-sm font-medium text-neutral-700">Phone</p>
+                        <div className="flex items-center gap-1 text-sm">
+                          <Phone className="h-3 w-3 text-neutral-400" />
+                          <p className="truncate">{broker.phone}</p>
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-neutral-700">Email</p>
+                        <div className="flex items-center gap-1 text-sm">
+                          <Mail className="h-3 w-3 text-neutral-400" />
+                          <p className="truncate">{broker.email}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-neutral-700">Specialization</p>
+                      <Badge variant="secondary">{broker.specialization}</Badge>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-neutral-700">Overall Rating</p>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-0.5">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              className={`h-4 w-4 ${i < Math.floor(broker.avg_overall || 0) ? "fill-yellow-400 text-yellow-400" : "text-neutral-300"}`}
+                            />
+                          ))}
+                        </div>
+                        <span className="text-sm font-semibold">{broker.avg_overall?.toFixed(1) || "N/A"}</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </TabsContent>
 
@@ -336,6 +422,14 @@ export default function ApplicationDetailPage() {
                       <p>{application.vehicle_class || "N/A"}</p>
                     </div>
                     <div>
+                      <p className="text-sm font-medium text-neutral-700">Vehicle Description</p>
+                      <p>{application.vehicle_description || "N/A"}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-neutral-700">Seating Capacity</p>
+                      <p>{application.seat_capacity || "N/A"} persons</p>
+                    </div>
+                    <div>
                       <p className="text-sm font-medium text-neutral-700">Chassis Number</p>
                       <p className="font-mono text-sm">{application.chassis_number || "N/A"}</p>
                     </div>
@@ -356,8 +450,8 @@ export default function ApplicationDetailPage() {
                       <p>{application.vehicle_color || "N/A"}</p>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-neutral-700">Seating Capacity</p>
-                      <p>{application.seat_capacity || "N/A"} persons</p>
+                      <p className="text-sm font-medium text-neutral-700">Registration Date</p>
+                      <p>{application.date_of_registration ? new Date(application.date_of_registration).toLocaleDateString('en-IN') : "N/A"}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -435,6 +529,52 @@ export default function ApplicationDetailPage() {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Processing Broker Card */}
+              {broker && (
+                <Card className="md:col-span-3">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Award className="h-5 w-5" />
+                      Processing Agent
+                    </CardTitle>
+                    <CardDescription>Broker handling this vehicle registration</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid gap-4 md:grid-cols-4">
+                      <div>
+                        <p className="text-sm font-medium text-neutral-700">Agent Name</p>
+                        <p className="font-semibold">{broker.name}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-neutral-700">License Number</p>
+                        <p className="font-mono text-sm">{broker.license_number}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-neutral-700">Contact</p>
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-1 text-sm">
+                            <Phone className="h-3 w-3 text-neutral-400" />
+                            <p>{broker.phone}</p>
+                          </div>
+                          <div className="flex items-center gap-1 text-sm">
+                            <Mail className="h-3 w-3 text-neutral-400" />
+                            <p className="truncate">{broker.email}</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-neutral-700">Specialization</p>
+                        <Badge variant="secondary" className="mt-1">{broker.specialization}</Badge>
+                        <div className="mt-2 flex items-center gap-1">
+                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                          <span className="text-sm font-semibold">{broker.avg_overall?.toFixed(1) || "N/A"}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </TabsContent>
 
