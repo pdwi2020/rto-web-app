@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from models import Citizen, Broker, Application, Rating, Complaint, Payment, engine
 from pydantic import BaseModel
@@ -128,6 +128,37 @@ def list_brokers(db: Session = Depends(get_db)):
             'avg_overall': avg_overall
         })
     return result
+
+@app.get("/brokers/{broker_id}")
+def get_broker(broker_id: int, db: Session = Depends(get_db)):
+    broker = db.query(Broker).filter(Broker.id == broker_id).first()
+    if not broker:
+        raise HTTPException(status_code=404, detail="Broker not found")
+
+    # Calculate average ratings (same logic as list_brokers)
+    ratings = db.query(Rating).join(Application).filter(Application.broker_id == broker.id).all()
+    if ratings:
+        avg_punctuality = sum([r.punctuality for r in ratings]) / len(ratings)
+        avg_quality = sum([r.quality for r in ratings]) / len(ratings)
+        avg_compliance = sum([r.compliance for r in ratings]) / len(ratings)
+        avg_communication = sum([r.communication for r in ratings]) / len(ratings)
+        avg_overall = sum([r.overall for r in ratings]) / len(ratings)
+    else:
+        avg_punctuality = avg_quality = avg_compliance = avg_communication = avg_overall = 0
+
+    return {
+        'id': broker.id,
+        'name': broker.name,
+        'license_number': broker.license_number,
+        'phone': broker.phone,
+        'email': broker.email,
+        'specialization': broker.specialization,
+        'avg_punctuality': avg_punctuality,
+        'avg_quality': avg_quality,
+        'avg_compliance': avg_compliance,
+        'avg_communication': avg_communication,
+        'avg_overall': avg_overall
+    }
 
 @app.post("/applications/")
 def create_application(app: ApplicationCreate, db: Session = Depends(get_db)):
