@@ -258,17 +258,17 @@ export default function ApplicationDetailPage() {
                 <CardContent className="space-y-3">
                   <div>
                     <p className="text-sm font-medium text-neutral-700">Name</p>
-                    <p className="text-lg">{application.owner_name || "N/A"}</p>
+                    <p className="text-lg">{application.vehicle_details?.owner_name || "N/A"}</p>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-neutral-700">Son/Daughter of</p>
-                    <p>{application.owner_so || "N/A"}</p>
+                    <p>{application.vehicle_details?.owner_so || "N/A"}</p>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-neutral-700">Address</p>
                     <div className="mt-1 flex items-start gap-2">
                       <MapPin className="h-4 w-4 text-neutral-400 mt-0.5 flex-shrink-0" />
-                      <p className="text-sm text-neutral-600">{application.owner_address || "N/A"}</p>
+                      <p className="text-sm text-neutral-600">{application.vehicle_details?.owner_address || "N/A"}</p>
                     </div>
                     <p className="mt-1 text-xs text-neutral-500">Tamil Nadu, India</p>
                   </div>
@@ -290,7 +290,7 @@ export default function ApplicationDetailPage() {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-neutral-700">Ownership Type</p>
-                    <Badge variant="outline">{application.ownership || "N/A"}</Badge>
+                    <Badge variant="outline">{application.vehicle_details?.ownership || "N/A"}</Badge>
                   </div>
                 </CardContent>
               </Card>
@@ -309,28 +309,28 @@ export default function ApplicationDetailPage() {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-neutral-700">Registration Date</p>
-                    <p>{application.date_of_registration ? new Date(application.date_of_registration).toLocaleDateString('en-IN') : "N/A"}</p>
+                    <p>{application.vehicle_details?.date_of_registration ? new Date(application.vehicle_details.date_of_registration).toLocaleDateString('en-IN') : "N/A"}</p>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-neutral-700">Registration Valid Until</p>
-                    <p>{application.registration_valid_upto ? new Date(application.registration_valid_upto).toLocaleDateString('en-IN') : "N/A"}</p>
+                    <p>{application.vehicle_details?.registration_valid_upto ? new Date(application.vehicle_details.registration_valid_upto).toLocaleDateString('en-IN') : "N/A"}</p>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-neutral-700">Tax Valid Until</p>
-                    <p>{application.tax_valid_upto ? new Date(application.tax_valid_upto).toLocaleDateString('en-IN') : "N/A"}</p>
+                    <p>{application.vehicle_details?.tax_valid_upto ? new Date(application.vehicle_details.tax_valid_upto).toLocaleDateString('en-IN') : "N/A"}</p>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-neutral-700">Insurance Valid Until</p>
-                    <p>{application.insurance_valid_upto ? new Date(application.insurance_valid_upto).toLocaleDateString('en-IN') : "N/A"}</p>
+                    <p>{application.vehicle_details?.insurance_valid_upto ? new Date(application.vehicle_details.insurance_valid_upto).toLocaleDateString('en-IN') : "N/A"}</p>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-neutral-700">PUCC Valid Until</p>
-                    <p>{application.pucc_valid_upto ? new Date(application.pucc_valid_upto).toLocaleDateString('en-IN') : "N/A"}</p>
+                    <p>{application.vehicle_details?.pucc_valid_upto ? new Date(application.vehicle_details.pucc_valid_upto).toLocaleDateString('en-IN') : "N/A"}</p>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-neutral-700">Fitness Status</p>
-                    <Badge variant={application.fitness_status === "Fit" ? "default" : "secondary"}>
-                      {application.fitness_status || "N/A"}
+                    <Badge variant={application.vehicle_details?.fitness_status === "Fit" ? "default" : "secondary"}>
+                      {application.vehicle_details?.fitness_status || "N/A"}
                     </Badge>
                   </div>
                 </CardContent>
@@ -410,48 +410,48 @@ export default function ApplicationDetailPage() {
                       <p className="text-sm font-medium text-neutral-700">Registration Number</p>
                       <div className="mt-1">
                         <p className="text-lg font-bold font-mono tracking-wider">
-                          {application.registration_number || "TN-XX-XX-XXXX"}
+                          {application.vehicle_details?.registration_number || "TN-XX-XX-XXXX"}
                         </p>
-                        {application.registration_number && application.registration_number.startsWith("TN") && (
+                        {application.vehicle_details?.registration_number && application.vehicle_details.registration_number.startsWith("TN") && (
                           <p className="text-xs text-neutral-500 mt-0.5">Tamil Nadu Registration</p>
                         )}
                       </div>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-neutral-700">Vehicle Class</p>
-                      <p>{application.vehicle_class || "N/A"}</p>
+                      <p>{application.vehicle_details?.vehicle_class || "N/A"}</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-neutral-700">Vehicle Description</p>
-                      <p>{application.vehicle_description || "N/A"}</p>
+                      <p>{application.vehicle_details?.vehicle_description || "N/A"}</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-neutral-700">Seating Capacity</p>
-                      <p>{application.seat_capacity || "N/A"} persons</p>
+                      <p>{application.vehicle_details?.seat_capacity || "N/A"} persons</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-neutral-700">Chassis Number</p>
-                      <p className="font-mono text-sm">{application.chassis_number || "N/A"}</p>
+                      <p className="font-mono text-sm">{application.vehicle_details?.chassis_number || "N/A"}</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-neutral-700">Engine Number</p>
-                      <p className="font-mono text-sm">{application.engine_number || "N/A"}</p>
+                      <p className="font-mono text-sm">{application.vehicle_details?.engine_number || "N/A"}</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-neutral-700">Maker</p>
-                      <p>{application.maker_name || "N/A"}</p>
+                      <p>{application.vehicle_details?.maker_name || "N/A"}</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-neutral-700">Model</p>
-                      <p>{application.model_name || "N/A"}</p>
+                      <p>{application.vehicle_details?.model_name || "N/A"}</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-neutral-700">Color</p>
-                      <p>{application.vehicle_color || "N/A"}</p>
+                      <p>{application.vehicle_details?.vehicle_color || "N/A"}</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-neutral-700">Registration Date</p>
-                      <p>{application.date_of_registration ? new Date(application.date_of_registration).toLocaleDateString('en-IN') : "N/A"}</p>
+                      <p>{application.vehicle_details?.date_of_registration ? new Date(application.vehicle_details.date_of_registration).toLocaleDateString('en-IN') : "N/A"}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -467,23 +467,23 @@ export default function ApplicationDetailPage() {
                 <CardContent className="space-y-3">
                   <div>
                     <p className="text-sm font-medium text-neutral-700">Cubic Capacity</p>
-                    <p>{application.cubic_capacity || "N/A"} cc</p>
+                    <p>{application.vehicle_details?.cubic_capacity || "N/A"}</p>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-neutral-700">Fuel Type</p>
                     <div className="flex items-center gap-2">
                       <Droplet className="h-4 w-4 text-blue-600" />
-                      <p>{application.fuel_type || "N/A"}</p>
+                      <p>{application.vehicle_details?.fuel_type || "N/A"}</p>
                     </div>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-neutral-700">Emission Norm</p>
-                    <p>{application.emission_norm || "N/A"}</p>
+                    <p>{application.vehicle_details?.emission_norm || "N/A"}</p>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-neutral-700">Fitness Status</p>
-                    <Badge variant={application.fitness_status === "Fit" ? "default" : "secondary"}>
-                      {application.fitness_status || "N/A"}
+                    <Badge variant={application.vehicle_details?.fitness_status === "Fit" ? "default" : "secondary"}>
+                      {application.vehicle_details?.fitness_status || "N/A"}
                     </Badge>
                   </div>
                 </CardContent>
@@ -500,27 +500,27 @@ export default function ApplicationDetailPage() {
                   <div className="grid gap-4 md:grid-cols-3">
                     <div>
                       <p className="text-sm font-medium text-neutral-700">Insurance Details</p>
-                      <p className="text-sm">{application.insurance_details || "N/A"}</p>
+                      <p className="text-sm">{application.vehicle_details?.insurance_details || "N/A"}</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-neutral-700">Insurance Valid Until</p>
-                      <p>{application.insurance_valid_upto ? new Date(application.insurance_valid_upto).toLocaleDateString() : "N/A"}</p>
+                      <p>{application.vehicle_details?.insurance_valid_upto ? new Date(application.vehicle_details.insurance_valid_upto).toLocaleDateString() : "N/A"}</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-neutral-700">PUCC Number</p>
-                      <p className="font-mono text-sm">{application.pucc_no || "N/A"}</p>
+                      <p className="font-mono text-sm">{application.vehicle_details?.pucc_no || "N/A"}</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-neutral-700">PUCC Valid Until</p>
-                      <p>{application.pucc_valid_upto ? new Date(application.pucc_valid_upto).toLocaleDateString() : "N/A"}</p>
+                      <p>{application.vehicle_details?.pucc_valid_upto ? new Date(application.vehicle_details.pucc_valid_upto).toLocaleDateString() : "N/A"}</p>
                     </div>
                     <div className="md:col-span-2">
                       <p className="text-sm font-medium text-neutral-700">Registering Authority</p>
                       <div className="mt-1 flex items-center gap-2">
                         <Building2 className="h-4 w-4 text-blue-600" />
                         <p className="text-sm font-semibold">
-                          {application.registering_authority ?
-                            (TN_RTO_OFFICES[application.registering_authority] || `RTO ${application.registering_authority}`)
+                          {application.vehicle_details?.registering_authority ?
+                            (TN_RTO_OFFICES[application.vehicle_details.registering_authority] || `RTO ${application.vehicle_details.registering_authority}`)
                             : "N/A"}
                         </p>
                       </div>
@@ -645,7 +645,7 @@ export default function ApplicationDetailPage() {
                       <div className="text-center">
                         <FileText className="mx-auto h-12 w-12 text-green-400 mb-2" />
                         <p className="text-xs text-neutral-600">Registration Certificate</p>
-                        <p className="text-xs font-mono mt-1">{application.registration_number || "TN01AB1234"}</p>
+                        <p className="text-xs font-mono mt-1">{application.vehicle_details?.registration_number || "TN01AB1234"}</p>
                       </div>
                     </div>
                     <div className="flex items-center justify-between text-xs">
@@ -670,12 +670,12 @@ export default function ApplicationDetailPage() {
                       <div className="text-center">
                         <Shield className="mx-auto h-12 w-12 text-orange-400 mb-2" />
                         <p className="text-xs text-neutral-600">Insurance Certificate</p>
-                        <p className="text-xs mt-1">{application.insurance_details || "Policy Details"}</p>
+                        <p className="text-xs mt-1">{application.vehicle_details?.insurance_details || "Policy Details"}</p>
                       </div>
                     </div>
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-neutral-600">Valid Until</span>
-                      <span className="font-medium">{application.insurance_valid_upto ? new Date(application.insurance_valid_upto).toLocaleDateString('en-IN') : "N/A"}</span>
+                      <span className="font-medium">{application.vehicle_details?.insurance_valid_upto ? new Date(application.vehicle_details.insurance_valid_upto).toLocaleDateString('en-IN') : "N/A"}</span>
                     </div>
                   </div>
                 </CardContent>
@@ -695,12 +695,12 @@ export default function ApplicationDetailPage() {
                       <div className="text-center">
                         <FileCheck className="mx-auto h-12 w-12 text-teal-400 mb-2" />
                         <p className="text-xs text-neutral-600">Pollution Certificate</p>
-                        <p className="text-xs font-mono mt-1">{application.pucc_no || "PUCC123456"}</p>
+                        <p className="text-xs font-mono mt-1">{application.vehicle_details?.pucc_no || "PUCC123456"}</p>
                       </div>
                     </div>
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-neutral-600">Valid Until</span>
-                      <span className="font-medium">{application.pucc_valid_upto ? new Date(application.pucc_valid_upto).toLocaleDateString('en-IN') : "N/A"}</span>
+                      <span className="font-medium">{application.vehicle_details?.pucc_valid_upto ? new Date(application.vehicle_details.pucc_valid_upto).toLocaleDateString('en-IN') : "N/A"}</span>
                     </div>
                   </div>
                 </CardContent>
