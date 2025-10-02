@@ -39,10 +39,12 @@ This is a fully functional prototype for an AI-powered RTO (Regional Transport O
    pip install -r requirements.txt
    ```
 
-3. Environment variables (`.env` file already created):
+3. Environment variables (create a `.env` file):
    ```
-   GEMINI_API_KEY=AIzaSyByy8vxYimt8yVcdVKwD_FbfQMYEuzpNAw
+   GEMINI_API_KEY=your_gemini_api_key_here
    ```
+
+   **Security Note:** Never commit your actual API key to git. Get your key from https://console.cloud.google.com/apis/credentials
 
 4. Start the backend server:
    ```bash
