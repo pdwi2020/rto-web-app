@@ -36,11 +36,11 @@ export function AnnouncementsTicker() {
   return (
     <section aria-label="Announcements and advisories" className="bg-secondary">
       <div className="mx-auto max-w-6xl px-4 py-2">
-        <div className="flex items-center gap-3">
-          <span className="rounded bg-primary px-2 py-0.5 text-xs font-semibold text-primary-foreground">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <span className="flex-shrink-0 rounded bg-primary px-1.5 py-0.5 text-xs font-semibold text-primary-foreground sm:px-2">
             Announcements
           </span>
-          <div className="relative h-8 flex-1 overflow-hidden">
+          <div className="relative h-8 min-w-0 flex-1 overflow-hidden">
             <ul
               ref={listRef}
               aria-live="polite"
@@ -48,7 +48,7 @@ export function AnnouncementsTicker() {
             >
               {loopItems.map((a, i) => (
                 <li key={i} className="h-8 leading-8">
-                  <Link href={a.href} className="text-sm text-foreground underline-offset-2 hover:underline">
+                  <Link href={a.href} className="block truncate text-xs text-foreground underline-offset-2 hover:underline sm:text-sm">
                     {a.text}
                   </Link>
                 </li>
