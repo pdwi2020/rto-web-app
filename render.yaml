@@ -4,10 +4,10 @@ services:
     env: python
     region: oregon
     plan: free
-    buildCommand: cd rto-platform && pip install -r requirements.txt
-    startCommand: cd rto-platform && uvicorn app:app --host 0.0.0.0 --port $PORT
+    buildCommand: cd rto-platform && pip install -r requirements.txt && python3 generate_synthetic_data.py
+    startCommand: cd rto-platform && python3 init_db.py && uvicorn app:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: GEMINI_API_KEY
-        value: AIzaSyByy8vxYimt8yVcdVKwD_FbfQMYEuzpNAw
+        value: AIzaSyC4LNi4U--rF3vu8YzbYKE_jSTpgVV6W48
       - key: PYTHON_VERSION
         value: 3.13.7
