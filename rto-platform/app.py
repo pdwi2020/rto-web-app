@@ -28,6 +28,24 @@ if os.path.exists('.env'):
 
 app = FastAPI()
 
+# CORS - Must be configured before loading model
+from fastapi.middleware.cors import CORSMiddleware
+
+# Configure CORS to allow Vercel frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origin_regex=r"https://.*\.vercel\.app",  # Allow all Vercel deployments
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "https://rto-web-app.vercel.app",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["*"],
+)
+
 # Load fraud detection model
 MODEL_PATH = 'fraud_model.pkl'
 if os.path.exists(MODEL_PATH):
@@ -37,16 +55,6 @@ if os.path.exists(MODEL_PATH):
 else:
     fraud_model = None
     MODEL_AVAILABLE = False
-
-# CORS
-from fastapi.middleware.cors import CORSMiddleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # For dev
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 # Dependency
 def get_db():
