@@ -10,7 +10,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from "recharts"
+import { Area, AreaChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { getAnalytics, type Analytics, type Application, comprehensiveFraudCheck } from "@/lib/api"
 import { API_BASE_URL } from "@/lib/config"
 import { Badge } from "@/components/ui/badge"
