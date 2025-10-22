@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Navbar } from "@/components/site/navbar"
 import { Button } from "@/components/ui/button"
@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { API_BASE_URL } from "@/lib/config"
+import { getBrokers, type Broker } from "@/lib/api"
 import { Award, AlertCircle } from "lucide-react"
 
 export default function BrokerLoginPage() {
@@ -16,6 +17,33 @@ export default function BrokerLoginPage() {
   const [licenseNumber, setLicenseNumber] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [demoLicenses, setDemoLicenses] = useState<string[]>(["3972562113", "7495224699", "3105460228"])
+
+  useEffect(() => {
+    async function loadDemoLicenses() {
+      try {
+        const brokers = await getBrokers()
+        if (brokers && brokers.length > 0) {
+          const uniqueLicenses = Array.from(
+            new Set(
+              brokers
+                .map((broker: Broker) => broker.license_number?.toString().trim())
+                .filter((lic): lic is string => Boolean(lic))
+            )
+          )
+          if (uniqueLicenses.length >= 3) {
+            setDemoLicenses(uniqueLicenses.slice(0, 3))
+          } else if (uniqueLicenses.length > 0) {
+            setDemoLicenses(uniqueLicenses)
+          }
+        }
+      } catch (err) {
+        console.warn("Unable to fetch broker license numbers for demo:", err)
+      }
+    }
+
+    loadDemoLicenses()
+  }, [])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -23,10 +51,17 @@ export default function BrokerLoginPage() {
     setLoading(true)
 
     try {
+      const normalizedLicense = licenseNumber.trim()
+      if (!normalizedLicense) {
+        setError("Please enter a license number")
+        setLoading(false)
+        return
+      }
+
       const response = await fetch(`${API_BASE_URL}/brokers/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ license_number: licenseNumber }),
+        body: JSON.stringify({ license_number: normalizedLicense }),
       })
 
       const data = await response.json()
@@ -96,7 +131,7 @@ export default function BrokerLoginPage() {
             <div className="mt-6 space-y-2 text-center text-sm text-neutral-600">
               <p>For demo purposes, click any license number:</p>
               <div className="flex flex-wrap justify-center gap-2">
-                {["3972562113", "7495224699", "3105460228"].map((lic) => (
+                {demoLicenses.map((lic) => (
                   <button
                     key={lic}
                     type="button"
