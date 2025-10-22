@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: rto-backend
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: cd rto-platform && pip install -r requirements.txt && python3 generate_synthetic_data.py
+    startCommand: cd rto-platform && python3 init_db.py && uvicorn app:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: GEMINI_API_KEY
+        value: REPLACE_WITH_ROTATED_KEY
+      - key: PYTHON_VERSION
+        value: 3.13.7
