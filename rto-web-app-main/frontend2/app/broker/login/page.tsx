@@ -70,7 +70,7 @@ export default function BrokerLoginPage() {
                 <Input
                   id="license"
                   type="text"
-                  placeholder="e.g., 3972562113"
+                  placeholder="e.g., 846868696"
                   value={licenseNumber}
                   onChange={(e) => setLicenseNumber(e.target.value)}
                   required
@@ -96,7 +96,7 @@ export default function BrokerLoginPage() {
             <div className="mt-6 space-y-2 text-center text-sm text-neutral-600">
               <p>For demo purposes, click any license number:</p>
               <div className="flex flex-wrap justify-center gap-2">
-                {["3972562113", "7495224699", "3105460228"].map((lic) => (
+                {["846868696", "1389212552", "8140027465"].map((lic) => (
                   <button
                     key={lic}
                     type="button"
