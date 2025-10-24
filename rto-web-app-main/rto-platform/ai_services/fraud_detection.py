@@ -1,6 +1,7 @@
 """
 TG-CMAE: Temporal Graph Cross-Modal Autoencoder
 Advanced fraud detection system combining temporal, graph, and multimodal analysis
+Enhanced with ML-based fraud prediction using Gradient Boosting
 """
 
 import numpy as np
@@ -8,6 +9,8 @@ from typing import Dict, List, Optional, Tuple
 from datetime import datetime, timedelta
 from collections import defaultdict
 import json
+import pickle
+from pathlib import Path
 
 # Optional deep learning imports
 try:
@@ -16,6 +19,14 @@ try:
     TORCH_AVAILABLE = True
 except ImportError:
     TORCH_AVAILABLE = False
+
+# ML model imports
+try:
+    import pandas as pd
+    from sklearn.ensemble import GradientBoostingClassifier
+    ML_AVAILABLE = True
+except ImportError:
+    ML_AVAILABLE = False
 
 
 class FraudDetector:
@@ -51,6 +62,115 @@ class FraudDetector:
         # Graph relationship tracking
         self.broker_citizen_graph = defaultdict(set)
         self.broker_task_history = defaultdict(list)
+
+        # Load trained ML model
+        self.ml_model = None
+        self.model_features = None
+        self._load_ml_model()
+
+    def _load_ml_model(self):
+        """Load pre-trained Gradient Boosting fraud detection model"""
+        if not ML_AVAILABLE:
+            print("[WARNING] ML libraries not available. Using rule-based detection only.")
+            return
+
+        model_path = Path(__file__).parent.parent / 'fraud_model.pkl'
+
+        if model_path.exists():
+            try:
+                with open(model_path, 'rb') as f:
+                    self.ml_model = pickle.load(f)
+                print(f"[INFO] Loaded fraud detection model from {model_path}")
+
+                # Store expected features (these must match training data)
+                self.model_features = [
+                    'citizen_id', 'broker_id', 'submission_day', 'avg_rating',
+                    'application_type_New Registration', 'application_type_Renewal',
+                    'application_type_Transfer of Ownership', 'status_Approved',
+                    'status_Pending', 'status_Rejected', 'status_Under Review'
+                ]
+            except Exception as e:
+                print(f"[ERROR] Failed to load fraud model: {e}")
+                self.ml_model = None
+        else:
+            print(f"[WARNING] Fraud model not found at {model_path}")
+
+    def predict_fraud_ml(self, application_data: Dict, avg_rating: float = 3.0) -> Dict:
+        """
+        Use ML model to predict fraud probability
+
+        Args:
+            application_data: Application details
+            avg_rating: Average rating for the broker
+
+        Returns:
+            ML prediction results with probability
+        """
+        if self.ml_model is None:
+            return {
+                'ml_available': False,
+                'fraud_probability': 0.0,
+                'prediction': False,
+                'confidence': 0.0
+            }
+
+        try:
+            # Extract features
+            citizen_id = application_data.get('citizen_id', 0)
+            broker_id = application_data.get('broker_id', 0)
+            application_type = application_data.get('application_type', 'New Registration')
+            status = application_data.get('status', 'Pending')
+
+            # Get submission day of year
+            submission_date = application_data.get('submission_date')
+            if isinstance(submission_date, datetime):
+                submission_day = submission_date.timetuple().tm_yday
+            else:
+                submission_day = datetime.now().timetuple().tm_yday
+
+            # Create feature vector
+            features = {
+                'citizen_id': citizen_id,
+                'broker_id': broker_id,
+                'submission_day': submission_day,
+                'avg_rating': avg_rating,
+                'application_type_New Registration': 1 if application_type == 'New Registration' else 0,
+                'application_type_Renewal': 1 if application_type == 'Renewal' else 0,
+                'application_type_Transfer of Ownership': 1 if application_type == 'Transfer of Ownership' else 0,
+                'status_Approved': 1 if status == 'Approved' else 0,
+                'status_Pending': 1 if status == 'Pending' else 0,
+                'status_Rejected': 1 if status == 'Rejected' else 0,
+                'status_Under Review': 1 if status == 'Under Review' else 0
+            }
+
+            # Convert to DataFrame
+            df = pd.DataFrame([features])
+
+            # Ensure correct feature order
+            df = df[self.model_features]
+
+            # Predict
+            prediction = self.ml_model.predict(df)[0]
+            probability = self.ml_model.predict_proba(df)[0][1]  # Probability of fraud (class 1)
+
+            return {
+                'ml_available': True,
+                'fraud_probability': round(float(probability), 3),
+                'prediction': bool(prediction),
+                'confidence': round(float(probability), 3),
+                'model_type': 'GradientBoostingClassifier',
+                'features_used': len(self.model_features)
+            }
+
+        except Exception as e:
+            print(f"[ERROR] ML prediction failed: {e}")
+            return {
+                'ml_available': False,
+                'fraud_probability': 0.0,
+                'prediction': False,
+                'confidence': 0.0,
+                'error': str(e)
+            }
 
     def detect_ghosting(
         self,
@@ -376,10 +496,37 @@ class FraudDetector:
             ghosting, duplicate, fee_inflation, delay, forgery
         )
 
+        # Get ML-based prediction
+        ml_prediction = self.predict_fraud_ml(application_data, avg_rating=broker_data.get('avg_rating', 3.0) if broker_data else 3.0)
+
+        # Combine rule-based and ML scores
+        combined_score = composite['anomaly_score']
+        if ml_prediction['ml_available']:
+            # Weighted average: 60% rule-based TG-CMAE, 40% ML model
+            combined_score = (0.6 * composite['anomaly_score']) + (0.4 * ml_prediction['fraud_probability'])
+            combined_score = round(combined_score, 3)
+
+        # Update fraud level based on combined score
+        if combined_score >= 0.7:
+            final_fraud_level = 'critical'
+        elif combined_score >= 0.5:
+            final_fraud_level = 'high'
+        elif combined_score >= 0.3:
+            final_fraud_level = 'medium'
+        else:
+            final_fraud_level = 'low'
+
         return {
             'application_id': application_data.get('id'),
             'broker_id': broker_id,
-            'fraud_analysis': composite,
+            'fraud_analysis': {
+                **composite,
+                'combined_score': combined_score,
+                'final_fraud_level': final_fraud_level,
+                'is_fraudulent': combined_score >= 0.5,
+                'ml_contribution': ml_prediction['fraud_probability'] if ml_prediction['ml_available'] else 0.0
+            },
+            'ml_prediction': ml_prediction,
             'individual_checks': {
                 'ghosting': ghosting,
                 'duplicate': duplicate,
@@ -388,7 +535,11 @@ class FraudDetector:
                 'forgery_pattern': forgery
             },
             'timestamp': datetime.now().isoformat(),
-            'recommendation': self._generate_recommendation(composite)
+            'recommendation': self._generate_recommendation({
+                **composite,
+                'anomaly_score': combined_score,
+                'fraud_level': final_fraud_level
+            })
         }
 
     def _generate_recommendation(self, composite: Dict) -> Dict:

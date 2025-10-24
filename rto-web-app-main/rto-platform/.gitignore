@@ -45,6 +45,7 @@ Thumbs.db
 
 # Models and data
 *.pkl
+!fraud_model.pkl
 *.csv
 *.db
 *.sqlite
